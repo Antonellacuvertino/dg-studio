@@ -1,3 +1,4 @@
+import { Synth, renderOne, drumBank } from './synth.js';
 // ===============================================================
 //  Motor de beats — sintetiza baterías, bajos, acordes y melodías
 //  100% original (sin samples de terceros) => libre de derechos.
@@ -141,6 +142,55 @@ export const GENRES = {
     bass: { type: 'synth', pat: '..RR..RR..RR..RR' }, chords: { type: 'stab', pat: '...x.....x....x.' }, lead: 'acid',
     progs: { minor: [[0, 0, 5, 6], [0, 0, 0, 6], [0, 3, 0, 4]], major: [[0, 0, 4, 3]] },
   },
+  hardtechno: {
+    name: 'Hard Techno', emoji: '⛓️', bpm: [148, 160], mode: 'minor', swing: 0, spb: 8, chordBars: 4, duck: true, openHats: true, hardKick: true, riser: true,
+    kick: ['x...x...x...x...'], snare: ['....x.......x...', '................'], snareType: 'clap',
+    hat: ['..x...x...x...x.', '..x.x.x...x.x.x.'], perc: [{ type: 'shaker', pat: 'xgxgxgxgxgxgxgxg', core: true }, { type: 'conga', pat: '...x..x....x..x.' }],
+    bass: { type: 'rumble', pat: '..RR..RR..RR..RR' }, chords: { type: 'stab', pat: '..x.....x.....x.', chorusType: 'hoover', chorusPat: 'x-------x-------' }, lead: 'acid',
+    progs: { minor: [[0, 0, 0, 5], [0, 0, 6, 6], [0, 0, 0, 0]], major: [[0, 0, 4, 4]] },
+  },
+  acidtechno: {
+    name: 'Acid Techno', emoji: '🧪', bpm: [134, 142], mode: 'minor', swing: 0.04, spb: 8, chordBars: 4, duck: true, openHats: true,
+    kick: ['x...x...x...x...'], snare: ['....x.......x...'], snareType: 'clap',
+    hat: ['..x...x...x...x.'], perc: [{ type: 'shaker', pat: 'gxgxgxgxgxgxgxgx', core: true }],
+    bass: { type: 'rumble', pat: '..R...R...R...R.' }, chords: { type: 'acid', pat: 'x.xx.x.xx.x.xx.x' }, lead: 'acid',
+    progs: { minor: [[0, 0, 0, 0], [0, 0, 3, 3]], major: [[0, 0, 0, 0]] },
+  },
+  melodictechno: {
+    name: 'Melodic Techno', emoji: '🌌', bpm: [122, 126], mode: 'minor', swing: 0, spb: 8, chordBars: 2, duck: true, seventh: true, riser: true,
+    kick: ['x...x...x...x...'], snare: ['....x.......x...', '................'], snareType: 'clap',
+    hat: ['..x...x...x...x.'], perc: [{ type: 'shaker', pat: 'gggggggggggggggg', core: true }],
+    bass: { type: 'synth', pat: '..R.R.R...R.R.R.' }, chords: { type: 'pad', pat: 'x---------------', chorusType: 'supersaw', chorusPat: 'x---------------' }, lead: 'pluck',
+    progs: { minor: [[0, 5, 2, 6], [0, 3, 5, 4], [5, 3, 0, 6]], major: [[0, 4, 5, 3]] },
+  },
+  industrial: {
+    name: 'Industrial', emoji: '🏗️', bpm: [138, 148], mode: 'minor', swing: 0, spb: 8, chordBars: 4, duck: true, hardKick: true,
+    kick: ['x...x...x...x...', 'x...x...x...x.x.'], snare: ['....x.......x...'], snareType: 'snare',
+    hat: ['xxxxxxxxxxxxxxxx'], perc: [{ type: 'conga', pat: 'x..x..x...x..x..', core: true }],
+    bass: { type: 'rumble', pat: '..R...R...R...R.' }, chords: { type: 'stab', pat: 'x.......x.......' }, lead: 'hoover',
+    progs: { minor: [[0, 0, 1, 0], [0, 0, 0, 1]], major: [[0, 0, 0, 0]] },
+  },
+  hardgroove: {
+    name: 'Hardgroove', emoji: '🥁', bpm: [140, 148], mode: 'minor', swing: 0.08, spb: 8, chordBars: 4, duck: true, openHats: true,
+    kick: ['x...x...x...x...'], snare: ['....x.......x...', '...x....x..x....'], snareType: 'rim',
+    hat: ['..x...x...x...x.'], perc: [{ type: 'shaker', pat: 'xgxxxgxxxgxxxgxx', core: true }, { type: 'conga', pat: '..x.x..x.x..x.x.', core: true }],
+    bass: { type: 'synth', pat: '..R..RR...R..RR.' }, chords: { type: 'stab', pat: '...x......x.....' }, lead: 'organ',
+    progs: { minor: [[0, 0, 3, 0], [0, 0, 0, 6]], major: [[0, 0, 3, 3]] },
+  },
+  technolatino: {
+    name: 'Techno Latino', emoji: '🔥', bpm: [140, 150], mode: 'minor', swing: 0, spb: 9, chordBars: 2, duck: true, openHats: true, hardKick: true, riser: true,
+    kick: ['x...x...x...x...'], snare: ['...x..x....x..x.'], snareType: 'rim',
+    hat: ['..x...x...x...x.'], perc: [{ type: 'conga', pat: 'x..x..x...x..x..', core: true }, { type: 'shaker', pat: 'gxgxgxgxgxgxgxgx', core: true }],
+    bass: { type: 'rumble', pat: '..RR..RR..RR..RR' }, chords: { type: 'stab', pat: 'x..x..x...x..x..', chorusType: 'hoover', chorusPat: 'x-------x-------' }, lead: 'lead',
+    progs: { minor: [[0, 5, 6, 0], [0, 0, 5, 6], [0, 3, 4, 0]], major: [[0, 4, 5, 3]] },
+  },
+  rave: {
+    name: 'Neo Rave', emoji: '💥', bpm: [145, 155], mode: 'minor', swing: 0, spb: 9, chordBars: 2, duck: true, hardKick: true, riser: true,
+    kick: ['x.....x...x.....', 'x...x...x...x...'], snare: ['....x.......x...', '....x..x.x..x...'], snareType: 'snare',
+    hat: ['x.x.x.x.x.x.x.x.'], perc: [{ type: 'shaker', pat: 'gggggggggggggggg', core: true }],
+    bass: { type: 'reese', pat: 'R-------R---R---' }, chords: { type: 'hoover', pat: 'x-------x-------' }, lead: 'supersaw',
+    progs: { minor: [[0, 5, 6, 4], [0, 6, 5, 6]], major: [[0, 4, 5, 3]] },
+  },
   balada: {
     name: 'Balada', emoji: '🌹', bpm: [64, 80], mode: 'major', swing: 0, spb: 8, chordBars: 1,
     kick: ['x.......x.......'], snare: ['....x.......x...'], snareType: 'snare', hat: ['xgxgxgxgxgxgxgxg'],
@@ -203,33 +253,16 @@ export async function renderSong(song, opts = {}) {
   return out;
 }
 
-// Renderiza un solo sonido (nota o golpe) a un AudioBuffer reutilizable
-const NOISE = Float32Array.from({ length: SR * 2 }, () => Math.random() * 2 - 1);
-async function renderOne(song, len, fn) {
-  const oc = new OfflineAudioContext(1, Math.ceil(len * SR), SR);
-  fn(new Renderer(oc, song, {}, 0, true));
-  return oc.startRendering();
-}
-
-class Renderer {
-  constructor(ctx, song, opts, beatEnd, oneshot = false) {
-    this.ctx = ctx; this.song = song; this.opts = opts; this.g = GENRES[song.genre];
-    this.oneshot = oneshot; this.pending = []; this.cache = new Map();
+class Renderer extends Synth {
+  constructor(ctx, song, opts, beatEnd) {
+    super(ctx);
+    this.song = song; this.opts = opts; this.g = GENRES[song.genre];
+    this.pending = []; this.cache = new Map();
     this.r = rng(song.seed * 7 + 3);
     this.beatEnd = beatEnd;
     this.jobs = [];
     this.step = 60 / song.bpm / 4;
     this.samples = (song.kit && song.kit.samples) || {};
-
-    // Ruido compartido
-    const nb = ctx.createBuffer(1, SR * 2, SR); nb.copyToChannel(NOISE, 0);
-    this.noise = nb;
-    if (oneshot) {
-      const d = ctx.destination;
-      this.master = this.beat = this.drums = this.duck = this.music = this.musicFilter = d;
-      this.verbSend = ctx.createGain(); this._sends = {};
-      return;
-    }
 
     // Buses
     const master = ctx.createGain(); master.gain.value = 0.9;
@@ -249,6 +282,7 @@ class Renderer {
     this.verb = this.combReverb();
     const vg = ctx.createGain(); vg.gain.value = 0.35; this.verb.out.connect(vg).connect(this.beat);
     this.verbSend = ctx.createGain(); this.verbSend.gain.value = 1; this.verbSend.connect(this.verb);
+    this.o = { drums: this.drums, music: this.music, bass: this.duck, verb: this.verbSend };
   }
 
   // Reverb algorítmica (filtros comb en paralelo): mucho más ligera que la convolución
@@ -275,46 +309,13 @@ class Renderer {
     return b;
   }
 
-  // ---------- utilidades ----------
-  env(p, t, a, peak, hold, rel) {
-    p.setValueAtTime(0.0001, t);
-    p.linearRampToValueAtTime(peak, t + a);
-    p.setValueAtTime(peak, t + a + hold);
-    p.exponentialRampToValueAtTime(0.0001, t + a + hold + rel);
-    return t + a + hold + rel;
-  }
-  osc(type, f, t, end, detune = 0) {
-    const o = this.ctx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); o.detune.value = detune;
-    o.start(t); o.stop(end + 0.05); return o;
-  }
-  noiseSrc(t, len) {
-    const s = this.ctx.createBufferSource(); s.buffer = this.noise;
-    s.start(t, Math.random() * 1.5, Math.min(len + 0.05, 0.49)); return s;
-  }
-  filt(type, f, q = 0.7) { const b = this.ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; }
-  gain(v = 1) { const g = this.ctx.createGain(); g.gain.value = v; return g; }
-  shaper(k = 8) {
-    const ws = this.ctx.createWaveShaper(); const n = 1024; const c = new Float32Array(n);
-    for (let i = 0; i < n; i++) { const x = (i / (n - 1)) * 2 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); }
-    ws.curve = c; return ws;
-  }
   sample(name, t, v) {
     const s = this.ctx.createBufferSource(); s.buffer = this.samples[name];
     const g = this.gain(v * 0.95); s.connect(g).connect(this.drums); s.start(t);
   }
 
   // ---------- banco de sonidos (cada golpe se sintetiza una sola vez) ----------
-  async buildBank() {
-    const T = 0.003;
-    const defs = {
-      kick: [0.6, (r) => r._kick(T, 1)], snare: [0.5, (r) => r._snare(T, 1)], clap: [0.5, (r) => r._clap(T, 1)],
-      rim: [0.3, (r) => r._rim(T, 1)], hat: [0.15, (r) => r._hat(T, 1)], hat2: [0.15, (r) => r._hat(T, 1)],
-      hatOpen: [0.5, (r) => r._hat(T, 1, true)], shaker: [0.2, (r) => r._shaker(T, 1)], guiro: [0.2, (r) => r._guiro(T, 1)],
-      congaHi: [0.4, (r) => r._conga(T, 1, true)], congaLo: [0.4, (r) => r._conga(T, 1, false)], crash: [2.2, (r) => r._crash(T)],
-    };
-    this.bank = {};
-    await Promise.all(Object.entries(defs).map(async ([k, [len, fn]]) => { this.bank[k] = await renderOne(this.song, len, fn); }));
-  }
+  async buildBank() { this.bank = await drumBank(); }
   playBuf(buf, t, v, out, send = 0) {
     const s = this.ctx.createBufferSource(); s.buffer = buf;
     const g = this.gain(v); s.connect(g).connect(out);
@@ -324,7 +325,7 @@ class Renderer {
   kick(t, v) {
     if (this.g.duck) { const p = this.duck.gain; p.setValueAtTime(0.45, t); p.linearRampToValueAtTime(1, t + 0.22); }
     if (this.samples.kick) return this.sample('kick', t, v);
-    this.playBuf(this.bank.kick, t, v, this.drums);
+    this.playBuf(this.bank[this.g.hardKick ? 'hardkick' : 'kick'], t, v, this.drums);
   }
   snare(t, v) {
     if (this.samples.snare) return this.sample('snare', t, v);
@@ -342,18 +343,16 @@ class Renderer {
 
   // ---------- notas: se sintetizan una vez por (tipo, nota, duración) ----------
   voice(type, t, midi, dur, v, out = this.music) {
-    if (this.oneshot) return this._voice(type, t, midi, dur, v, out);
     const d = Math.round(dur * 50) / 50;
     this.pending.push({ key: `v|${type}|${midi}|${d}`, len: d + 2.6, fn: (r) => r._voice(type, 0.003, midi, d, 1), t, v, out, send: this.verbSendFor(type) });
   }
   bass(type, t, midi, dur, v, glideTo) {
-    if (this.oneshot) return this._bass(type, t, midi, dur, v, glideTo);
     const d = Math.round(dur * 50) / 50;
     this.pending.push({ key: `b|${type}|${midi}|${d}|${glideTo || 0}`, len: d + 0.6, fn: (r) => r._bass(type, 0.003, midi, d, 1, glideTo), t, v, out: this.duck });
   }
   async flush() {
     const list = this.pending; this.pending = [];
-    list.forEach((p) => { if (!this.cache.has(p.key)) this.cache.set(p.key, renderOne(this.song, p.len, p.fn)); });
+    list.forEach((p) => { if (!this.cache.has(p.key)) this.cache.set(p.key, renderOne(p.len, p.fn)); });
     for (const p of list) {
       const buf = await this.cache.get(p.key);
       const s = this.ctx.createBufferSource(); s.buffer = buf;
@@ -363,59 +362,6 @@ class Renderer {
     }
   }
 
-  // ---------- síntesis de batería ----------
-  _kick(t, v) {
-    const g = this.gain(); const end = this.env(g.gain, t, 0.002, v, 0.03, 0.32);
-    const o = this.osc('sine', 165, t, end); o.frequency.exponentialRampToValueAtTime(46, t + 0.11);
-    o.connect(g).connect(this.drums);
-    const cg = this.gain(); this.env(cg.gain, t, 0.001, v * 0.25, 0, 0.012);
-    this.noiseSrc(t, 0.02).connect(this.filt('highpass', 2500)).connect(cg).connect(this.drums);
-  }
-  _snare(t, v) {
-    const ng = this.gain(); this.env(ng.gain, t, 0.001, v * 0.55, 0.01, 0.17);
-    const nf = this.filt('highpass', 1500);
-    this.noiseSrc(t, 0.2).connect(nf).connect(ng); ng.connect(this.drums); ng.connect(this.verbSend);
-    const tg = this.gain(); const end = this.env(tg.gain, t, 0.001, v * 0.5, 0, 0.09);
-    const o = this.osc('triangle', 200, t, end); o.frequency.exponentialRampToValueAtTime(160, t + 0.08);
-    o.connect(tg).connect(this.drums);
-  }
-  _clap(t, v) {
-    const g = this.ctx.createGain(); const p = g.gain;
-    p.setValueAtTime(0.0001, t);
-    [0, 0.011, 0.022].forEach((o) => { p.setValueAtTime(v * 0.7, t + o); p.exponentialRampToValueAtTime(v * 0.15, t + o + 0.009); });
-    p.setValueAtTime(v * 0.6, t + 0.033); p.exponentialRampToValueAtTime(0.0001, t + 0.25);
-    this.noiseSrc(t, 0.3).connect(this.filt('bandpass', 1300, 1.2)).connect(g);
-    g.connect(this.drums); g.connect(this.verbSend);
-  }
-  _rim(t, v) {
-    const g = this.gain(); const end = this.env(g.gain, t, 0.001, v * 0.45, 0, 0.05);
-    this.osc('triangle', 820, t, end).connect(g).connect(this.drums);
-    const ng = this.gain(); this.env(ng.gain, t, 0.001, v * 0.35, 0, 0.03);
-    this.noiseSrc(t, 0.05).connect(this.filt('bandpass', 2800, 2)).connect(ng); ng.connect(this.drums); ng.connect(this.verbSend);
-  }
-  _hat(t, v, open = false) {
-    const g = this.gain(); this.env(g.gain, t, 0.001, v * (open ? 0.22 : 0.28), 0, open ? 0.28 : 0.045);
-    this.noiseSrc(t, open ? 0.35 : 0.06).connect(this.filt('highpass', 7500)).connect(g).connect(this.drums);
-  }
-  _shaker(t, v) {
-    const g = this.gain(); this.env(g.gain, t, 0.008, v * 0.13, 0, 0.06);
-    this.noiseSrc(t, 0.08).connect(this.filt('bandpass', 6500, 1.5)).connect(g).connect(this.drums);
-  }
-  _guiro(t, v) {
-    const g = this.gain(); this.env(g.gain, t, 0.01, v * 0.2, 0.02, 0.04);
-    this.noiseSrc(t, 0.08).connect(this.filt('bandpass', 3800, 4)).connect(g).connect(this.drums);
-  }
-  _conga(t, v, hi) {
-    const g = this.gain(); const end = this.env(g.gain, t, 0.002, v * 0.45, 0, 0.22);
-    const f = hi ? 330 : 220;
-    const o = this.osc('sine', f * 1.15, t, end); o.frequency.exponentialRampToValueAtTime(f, t + 0.03);
-    o.connect(g).connect(this.drums);
-  }
-  _crash(t) {
-    const g = this.gain(); this.env(g.gain, t, 0.002, 0.22, 0, 1.8);
-    const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.start(t); s.stop(t + 2);
-    s.connect(this.filt('highpass', 5000)).connect(g); g.connect(this.drums); g.connect(this.verbSend);
-  }
   riser(t, len) {
     const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.loop = true; s.start(t); s.stop(t + len);
     const f = this.filt('bandpass', 400, 2); f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(9000, t + len);
@@ -423,107 +369,6 @@ class Renderer {
     s.connect(f).connect(g).connect(this.beat);
   }
 
-  // ---------- instrumentos melódicos ----------
-  _voice(type, t, midi, dur, v, out = this.music) {
-    const f = mtof(midi); const c = this.ctx;
-    const g = this.gain(); let end;
-    switch (type) {
-      case 'pad': {
-        end = this.env(g.gain, t, 0.25, v * 0.06, Math.max(0, dur - 0.25), 0.6);
-        const lp = this.filt('lowpass', 1400); lp.connect(g);
-        [-8, 0, 8].forEach((dt) => this.osc('sawtooth', f, t, end, dt).connect(lp));
-        break;
-      }
-      case 'strings': {
-        end = this.env(g.gain, t, 0.35, v * 0.05, Math.max(0, dur - 0.3), 0.8);
-        const lp = this.filt('lowpass', 2600); lp.connect(g);
-        [-10, -3, 4, 11].forEach((dt) => this.osc('sawtooth', f, t, end, dt).connect(lp));
-        break;
-      }
-      case 'rhodes': {
-        end = this.env(g.gain, t, 0.005, v * 0.16, 0.05, Math.max(0.6, dur * 1.1));
-        this.osc('sine', f, t, end).connect(g);
-        const g2 = this.gain(0.25); this.osc('sine', f * 2, t, end, 4).connect(g2).connect(g);
-        const g3 = this.gain(0.06); this.osc('triangle', f * 3, t, Math.min(end, t + 0.3)).connect(g3).connect(g);
-        break;
-      }
-      case 'piano': case 'arp': {
-        end = this.env(g.gain, t, 0.003, v * 0.17, 0, Math.max(0.8, Math.min(dur * 1.6, 2.2)));
-        this.osc('triangle', f, t, end).connect(g);
-        const g2 = this.gain(0.35); this.osc('sine', f * 2, t, end, 3).connect(g2).connect(g);
-        const g3 = this.gain(0.1); this.osc('sine', f * 4, t, Math.min(end, t + 0.4)).connect(g3).connect(g);
-        break;
-      }
-      case 'pluck': {
-        end = this.env(g.gain, t, 0.003, v * 0.1, 0, Math.min(0.45, dur + 0.2));
-        const lp = this.filt('lowpass', 3500, 2); lp.frequency.setValueAtTime(3500, t); lp.frequency.exponentialRampToValueAtTime(500, t + 0.25);
-        lp.connect(g); this.osc('sawtooth', f, t, end).connect(lp); this.osc('square', f, t, end, 6).connect(lp);
-        break;
-      }
-      case 'stab': {
-        end = this.env(g.gain, t, 0.003, v * 0.09, 0.05, 0.18);
-        const lp = this.filt('lowpass', 2200); lp.connect(g);
-        this.osc('sawtooth', f, t, end).connect(lp); this.osc('square', f, t, end, -7).connect(lp);
-        break;
-      }
-      case 'skank': {
-        end = this.env(g.gain, t, 0.002, v * 0.08, 0.04, 0.08);
-        const bp = this.filt('bandpass', 1800, 0.8); bp.connect(g);
-        this.osc('square', f, t, end).connect(bp);
-        break;
-      }
-      case 'power': case 'guitar': {
-        end = this.env(g.gain, t, 0.004, v * (type === 'power' ? 0.05 : 0.06), Math.max(0, dur - 0.05), 0.12);
-        const sh = this.shaper(14); const lp = this.filt('lowpass', 3200); sh.connect(lp).connect(g);
-        this.osc('sawtooth', f, t, end).connect(sh); this.osc('sawtooth', f, t, end, 9).connect(sh);
-        break;
-      }
-      case 'supersaw': {
-        end = this.env(g.gain, t, 0.03, v * 0.035, Math.max(0, dur - 0.03), 0.4);
-        const lp = this.filt('lowpass', 5500); lp.connect(g);
-        [-22, -11, 0, 11, 22].forEach((dt) => this.osc('sawtooth', f, t, end, dt).connect(lp));
-        break;
-      }
-      case 'bell': case 'marimba': {
-        const mar = type === 'marimba';
-        end = this.env(g.gain, t, 0.002, v * 0.13, 0, mar ? 0.35 : 1.1);
-        const car = this.osc('sine', f, t, end);
-        const mod = this.osc('sine', f * (mar ? 4 : 3.5), t, end);
-        const mg = c.createGain(); mg.gain.setValueAtTime(f * (mar ? 1.2 : 2.2), t); mg.gain.exponentialRampToValueAtTime(1, t + 0.4);
-        mod.connect(mg).connect(car.frequency); car.connect(g);
-        break;
-      }
-      case 'acid': {
-        end = this.env(g.gain, t, 0.003, v * 0.07, Math.max(0, dur - 0.03), 0.08);
-        const lp = this.filt('lowpass', 400, 14); lp.frequency.setValueAtTime(2600, t); lp.frequency.exponentialRampToValueAtTime(300, t + 0.16);
-        const sh = this.shaper(4); lp.connect(sh).connect(g);
-        this.osc('sawtooth', f / 2, t, end).connect(lp);
-        break;
-      }
-      case 'organ': {
-        end = this.env(g.gain, t, 0.01, v * 0.05, Math.max(0, dur - 0.02), 0.08);
-        [1, 2, 3, 4].forEach((h, i) => { const hg = this.gain([1, 0.6, 0.35, 0.2][i]); this.osc('sine', f * h, t, end).connect(hg).connect(g); });
-        break;
-      }
-      case 'accordion': {
-        end = this.env(g.gain, t, 0.03, v * 0.05, Math.max(0, dur - 0.04), 0.1);
-        const bp = this.filt('bandpass', 1600, 0.7); bp.connect(g);
-        const lfo = this.osc('sine', 5.5, t, end); const lg = c.createGain(); lg.gain.value = 9;
-        const a = this.osc('square', f, t, end, 0); const b = this.osc('sawtooth', f, t, end, 12);
-        lfo.connect(lg); lg.connect(a.detune); lg.connect(b.detune); a.connect(bp); b.connect(bp);
-        break;
-      }
-      default: { // 'lead'
-        end = this.env(g.gain, t, 0.01, v * 0.065, Math.max(0, dur - 0.02), 0.15);
-        const lp = this.filt('lowpass', 2800); lp.connect(g);
-        const lfo = this.osc('sine', 5, t, end); const lg = c.createGain(); lg.gain.value = 12;
-        const a = this.osc('sawtooth', f, t, end); const b = this.osc('square', f, t, end, 7);
-        lfo.connect(lg); lg.connect(a.detune); lg.connect(b.detune); a.connect(lp); b.connect(lp);
-      }
-    }
-    g.connect(out);
-    return end;
-  }
   verbSendFor(type) {
     if (!this._sends) this._sends = {};
     if (!this._sends[type]) {
@@ -532,33 +377,6 @@ class Renderer {
     }
     return this._sends[type];
   }
-  _bass(type, t, midi, dur, v, glideTo) {
-    const f = mtof(midi); const g = this.gain(); let end;
-    if (type === '808') {
-      end = this.env(g.gain, t, 0.003, v * 0.55, Math.max(0, dur - 0.15), 0.25);
-      const o = this.osc('sine', f * 1.6, t, end); o.frequency.exponentialRampToValueAtTime(f, t + 0.05);
-      if (glideTo) { o.frequency.setValueAtTime(f, t + dur * 0.7); o.frequency.exponentialRampToValueAtTime(mtof(glideTo), t + dur * 0.95); }
-      const sh = this.shaper(3); o.connect(sh).connect(g);
-    } else if (type === 'sub') {
-      end = this.env(g.gain, t, 0.006, v * 0.5, Math.max(0, dur - 0.05), 0.08);
-      this.osc('sine', f, t, end).connect(g);
-      const g2 = this.gain(0.18); this.osc('triangle', f * 2, t, end).connect(g2).connect(g);
-    } else if (type === 'synth') {
-      end = this.env(g.gain, t, 0.004, v * 0.32, Math.max(0, dur - 0.04), 0.06);
-      const lp = this.filt('lowpass', 900, 3); lp.frequency.setValueAtTime(1400, t); lp.frequency.exponentialRampToValueAtTime(260, t + 0.18);
-      lp.connect(g); this.osc('sawtooth', f, t, end).connect(lp); this.osc('sine', f / 2, t, end).connect(lp);
-    } else if (type === 'rock') {
-      end = this.env(g.gain, t, 0.004, v * 0.3, Math.max(0, dur - 0.03), 0.05);
-      const sh = this.shaper(3); const lp = this.filt('lowpass', 1100); sh.connect(lp).connect(g);
-      this.osc('sawtooth', f, t, end).connect(sh);
-    } else { // reggae, cumbia
-      end = this.env(g.gain, t, 0.006, v * 0.5, Math.max(0, dur - (type === 'cumbia' ? 0.1 : 0.04)), type === 'cumbia' ? 0.12 : 0.06);
-      const lp = this.filt('lowpass', 500); lp.connect(g);
-      this.osc('sine', f, t, end).connect(lp); this.osc('triangle', f, t, end).connect(lp);
-    }
-    g.connect(this.duck);
-  }
-
   // ---------- secuenciación ----------
   stepTime(barStart, i) {
     const sw = this.song.swing ?? this.g.swing ?? 0;
@@ -689,7 +507,7 @@ class Renderer {
       });
       return;
     }
-    const root = lowNote(rootPc, 28 + 12 * (g.bass.type === 'sub' ? 0 : 1));
+    const root = lowNote(rootPc, 28 + 12 * (['sub', 'rumble', 'reese'].includes(g.bass.type) ? 0 : 1));
     const fifth = root + 7, oct = root + 12, third = root + (degSemi(sc, deg + 2) - degSemi(sc, deg));
     eachHit(g.bass.pat, (i, len, ch) => {
       const m = ch === 'F' ? fifth : ch === 'O' ? oct : ch === '3' ? third : root;
@@ -715,7 +533,7 @@ class Renderer {
     const comp = c.createDynamicsCompressor(); comp.threshold.value = -24; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.12;
     const g = this.gain(1.5 * level);
     s.connect(hp).connect(pres).connect(comp).connect(g).connect(this.master);
-    const vs = this.gain(0.18); g.connect(vs).connect(this.verb);
+    const vs = this.gain(this.opts.voiceSpace ?? 0.18); g.connect(vs).connect(this.verb);
     if (offset >= 0) s.start(offset); else s.start(0, -offset);
   }
 }

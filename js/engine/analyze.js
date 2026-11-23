@@ -70,13 +70,20 @@ const KW = {
   house: 'house club dj pista luces energia groove underground manos bailar',
   edm: 'festival drop volar laser euforia arriba explosion electro rave infinito',
   cumbia: 'cumbia pollera guira acordeon sonidera baile tropical sabrosura cintura caderas sabor pueblo cerveza chela bailemos villera',
+  hardtechno: 'hard duro dura martillo velocidad rapido golpe bunker hardtechno schranz',
+  acidtechno: 'acid acido 303 squelch',
+  melodictechno: 'melodico melodica emocion universo estrellas cosmos viaje sueño',
+  industrial: 'industrial metal fabrica acero maquina oxido',
+  hardgroove: 'groove tribal tambores tribu',
+  technolatino: 'edit perreo techno latino neoperreo rkt mami bellaca gata chilena',
+  rave: 'rave neo neorave euforia saltar',
   techno: 'techno tecno rave warehouse bunker maquina maquinas industrial berlin hipnotico repetir oscuridad acido strobo',
   balada: 'lagrimas lloro llorar adios perdon extrano extranarte olvidar dolor herida triste tristeza partiste despedida roto jamas nunca silencio',
 };
 const KWS = Object.fromEntries(Object.entries(KW).map(([k, v]) => [k, new Set(v.split(' '))]));
 const NEG = new Set('triste tristeza dolor llorar lloro lagrimas muerte oscuro sombra solo soledad roto herida odio rabia nunca jamas adios perdi perdido frio guerra enemigo envidia sangre infierno extrano miedo'.split(' '));
 const POS = new Set('feliz alegria sonrisa amor brillar sol luz cielo bailar fiesta vida magia juntos siempre paz libre libertad gozar disfrutar sueno suenos'.split(' '));
-const PRIOR = { reggaeton: 0.7, trap: 0.7, pop: 0.6, hiphop: 0.45, rnb: 0.4, drill: 0.3, balada: 0.35, rock: 0.35, reggae: 0.3, dembow: 0.25, cumbia: 0.3, afrobeat: 0.3, dancehall: 0.25, lofi: 0.3, house: 0.2, edm: 0.2, techno: 0.2 };
+const PRIOR = { reggaeton: 0.7, trap: 0.7, pop: 0.6, hiphop: 0.45, rnb: 0.4, drill: 0.3, balada: 0.35, rock: 0.35, reggae: 0.3, dembow: 0.25, cumbia: 0.3, afrobeat: 0.3, dancehall: 0.25, lofi: 0.3, house: 0.2, edm: 0.2, techno: 0.3, hardtechno: 0.3, acidtechno: 0.2, melodictechno: 0.2, industrial: 0.15, hardgroove: 0.15, technolatino: 0.3, rave: 0.15 };
 
 export function analyzeLyrics(text) {
   const raw = (text || '').replace(/\r/g, '');
@@ -407,4 +414,13 @@ export async function analyzeSounds(buffer, onProgress) {
   });
 
   return { bpm, drums, samples, hits: onsets.length, genre: guessGenre(bpm, drums.kick, drums.snare) };
+}
+
+// Tempo rápido de un loop o sample (para la biblioteca de sonidos)
+export async function quickTempo(buffer) {
+  if (buffer.duration < 1.5) return { bpm: null, conf: 0 };
+  const x = await toMono(buffer, 60);
+  const F = await features(x);
+  const r = tempo(F.flux, 70, 180);
+  return r;
 }

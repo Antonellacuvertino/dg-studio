@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>DG Studio</title>
-  <meta name="description" content="Escribe, graba o sube audio y DG Studio produce tu canción.">
-  <meta name="theme-color" content="#0b0b12">
+  <meta name="description" content="Estudio de producción musical de differentgyal: crea canciones, beats, loops y techno para DJ.">
+  <meta name="theme-color" content="#4c0410">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,108 +13,55 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/app.css">
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js" defer></script>
 </head>
 <body>
   <header class="top">
-    <div class="logo"><span class="dot"></span>DG <b>Studio</b></div>
+    <div class="logo"><span class="mark">DG</span> DG Studio</div>
     <div class="top-r">
-      <button class="artist" id="voiceBtn" title="Analizar y guardar mi voz">🗣️ <span id="voiceState">Mi voz</span></button>
-      <button class="artist" id="artistBtn" title="Cambiar nombre artístico">by <span id="artistName">differentgyal</span> ✎</button>
+      <button class="pill always" id="artistBtn" title="Nombre artístico">by <b id="artistName">differentgyal</b></button>
     </div>
   </header>
 
   <main>
-    <!-- COMPOSITOR -->
-    <section class="card composer">
-      <textarea id="lyrics" placeholder="Escribe tu letra aquí…&#10;&#10;Deja una línea en blanco entre versos y coro, o escribe [Coro] arriba del coro. Sin límite de palabras."></textarea>
-      <div id="attachments" class="attachments"></div>
-
-      <div class="genres" id="genres"></div>
-      <button class="vocal-chip" id="vocalBtn"></button>
-
-      <div class="actions">
-        <button class="round" id="recBtn" aria-label="Grabar voz"><span class="ico">🎤</span><small>Grabar</small></button>
-        <label class="round" aria-label="Subir archivo"><span class="ico">📎</span><small>Subir</small>
-          <input type="file" id="fileIn" accept="audio/*,video/*,.mp3,.m4a,.wav,.aac,.ogg,.webm,.caf,.mov,.mp4" hidden>
-        </label>
-        <button class="create" id="createBtn">✨ Crear canción</button>
-      </div>
-    </section>
-
-    <!-- RESULTADO -->
-    <section class="card result" id="result" hidden>
-      <input id="title" class="title" maxlength="80" placeholder="Título de la canción">
-      <div class="meta" id="meta"></div>
-      <p class="why" id="why"></p>
-
-      <div class="player">
-        <button class="play" id="playBtn" aria-label="Reproducir">▶</button>
-        <div class="wave"><canvas id="wave"></canvas><div class="time" id="time">0:00</div></div>
-      </div>
-
-      <div class="tools">
-        <button id="againBtn">🎲 Otro beat</button>
-        <button id="takeBtn">🎙️ Grabar sobre el beat</button>
-        <button id="mp3Btn" class="primary">⬇️ Descargar MP3</button>
-        <button id="licBtn">📜 Licencia</button>
-        <button id="aiBtn" class="ai" hidden>🧬 Voz realista (IA)</button>
-      </div>
-      <input type="file" id="aiIn" accept="audio/*,.wav" hidden>
-
-      <details class="sync" id="syncBox" hidden>
-        <summary>Ajuste fino de sincronía de tu voz</summary>
-        <input type="range" id="sync" min="-300" max="300" step="10" value="0">
-        <span id="syncVal">0 ms</span>
-        <button id="syncApply">Aplicar</button>
-      </details>
-
-      <ol class="prompter" id="prompter"></ol>
-    </section>
-
-    <p class="foot">Beats 100% sintetizados en tu dispositivo · sin samples de terceros · listos para monetizar</p>
+    <section class="view" id="v-create"></section>
+    <section class="view" id="v-studio"></section>
+    <section class="view" id="v-loops"></section>
+    <section class="view" id="v-voice"></section>
+    <section class="view" id="v-assistant"></section>
   </main>
 
-  <!-- Grabación -->
-  <div class="overlay" id="recOverlay" hidden>
+  <nav class="tabs" id="tabs">
+    <button data-tab="create" class="always"><span class="ti">✍️</span>Crear</button>
+    <button data-tab="studio" class="always"><span class="ti">🎛️</span>Estudio</button>
+    <button data-tab="loops" class="always"><span class="ti">🔁</span>Loops</button>
+    <button data-tab="voice" class="always"><span class="ti">🎤</span>Voz</button>
+    <button data-tab="assistant" class="always"><span class="ti">🐆</span>Asistente</button>
+  </nav>
+
+  <!-- Grabación (compartida) -->
+  <div class="overlay" id="rec" hidden>
     <div class="recbox">
-      <div class="pulse"></div>
+      <div class="pulse">🎙️</div>
       <div class="rectime" id="recTime">0:00</div>
-      <div class="rechint" id="recHint">Grabando…</div>
-      <ol class="prompter live" id="livePrompter"></ol>
-      <button class="stop" id="stopBtn">■ Detener</button>
+      <div class="muted" id="recHint">Grabando…</div>
+      <div class="meter"><div id="recLevel"></div></div>
+      <ol class="prompter" id="recPrompter" style="max-height:40vh;overflow:auto;text-align:left"></ol>
+      <button class="btn primary big always" id="recStop" style="width:100%;margin-top:12px">■ Detener</button>
     </div>
   </div>
 
-  <!-- Ocupado -->
   <div class="overlay" id="busy" hidden>
-    <div class="busybox"><div class="spinner"></div><div id="busyText">Produciendo…</div></div>
+    <div class="busybox"><div class="spinner"></div><div id="busyText">Trabajando…</div></div>
   </div>
 
-  <!-- Hoja de opciones -->
-  <div class="overlay sheet-bg" id="sheet" hidden>
+  <div class="overlay bottom" id="sheet" hidden>
     <div class="sheet">
       <h3 id="sheetTitle"></h3>
       <p id="sheetText"></p>
-      <div id="sheetOpts" class="sheet-opts"></div>
-      <button class="ghost" id="sheetCancel">Cancelar</button>
-    </div>
-  </div>
-
-  <!-- Asistente: crear mi voz -->
-  <div class="overlay sheet-bg" id="wiz" hidden>
-    <div class="sheet wiz">
-      <h3>🗣️ Crear mi voz</h3>
-      <p id="wizText">Voy a analizar tu voz con 7 sonidos cortos (unos 30 segundos). Luego podré cantar o rapear cualquier letra que escribas con tu timbre, sin que tengas que grabarla.</p>
-      <div class="wiz-steps" id="wizSteps"></div>
-      <div class="wiz-big" id="wizBig">A</div>
-      <div class="wiz-hint" id="wizHint">Mantén el sonido parejo 2 segundos, en tu tono cómodo.</div>
-      <div class="meter"><div id="wizMeter"></div></div>
-      <label class="consent"><input type="checkbox" id="wizConsent"> Confirmo que es <b>mi propia voz</b></label>
-      <button class="create" id="wizRec">🔴 Grabar</button>
-      <button class="ghost" id="wizTest" hidden>🎧 Escuchar mi voz cantando</button>
-      <button class="ghost" id="wizClose">Cerrar</button>
+      <div id="sheetBody" class="sheet-opts"></div>
+      <button class="sheet-close always" id="sheetCancel">Cancelar</button>
     </div>
   </div>
 

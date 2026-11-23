@@ -94,25 +94,55 @@ export function produce(p) {
   // ---------- 5. Estructura + letra ----------
   const barDur = (60 / bpm) * 4;
   const sections = []; const timeline = [];
-  const intro = bpm < 90 ? 2 : 4;
+  // Duración objetivo (en compases): alarga la canción repitiendo el gancho y con vocal chops
+  const TARGET = { auto: 0, short: 90, normal: 150, long: 210, dj: 360 };
+  const techno = ['techno', 'hardtechno', 'acidtechno', 'melodictechno', 'industrial', 'hardgroove', 'technolatino', 'rave', 'house', 'edm'].includes(genre);
+  const intro = p.length === 'dj' ? 32 : techno && p.length && p.length !== 'auto' ? 16 : bpm < 90 ? 2 : 4;
+  const outro = p.length === 'dj' ? 32 : techno && p.length && p.length !== 'auto' ? 16 : 4;
+  const targetBars = Math.max(0, Math.round(((TARGET[p.length || 'auto'] || 0) * bpm) / 240) - outro);
   sections.push({ type: 'intro', bars: intro });
-  let bar = intro;
+  let bar = intro; let chopN = 0;
 
   const spb = G.spb * (bpm / ((G.bpm[0] + G.bpm[1]) / 2)) ** -1; // sílabas que caben en un compás
+  const addBlock = (b, type = b.type) => {
+    let bars = 0; const startBar = bar;
+    b.lines.forEach((ln) => {
+      const n = ln.syll <= spb * 1.25 ? 1 : ln.syll <= spb * 2.4 ? 2 : Math.ceil(ln.syll / spb);
+      timeline.push({ text: ln.text, rhyme: ln.rhyme, time: (startBar + bars) * barDur, bars: n, section: type });
+      bars += n;
+    });
+    bars = Math.max(4, Math.ceil(bars / 4) * 4);
+    sections.push({ type, bars }); bar += bars;
+  };
+  const addChops = (hook, bars, type = 'verse') => {
+    const text = hook.lines[hook.lines.length - 1].text;
+    timeline.push({ text, chop: true, time: bar * barDur, bars, section: 'chop' });
+    sections.push({ type: chopN++ % 3 === 2 ? 'bridge' : type, bars }); bar += bars;
+  };
   if (L) {
     const blocks = L.blocks.slice();
-    const chorus = blocks.filter((b) => b.type === 'chorus').pop();
-    if (chorus && blocks.length >= 2 && !V) blocks.push(chorus); // coro final (doble coro de cierre)
-    blocks.forEach((b) => {
-      let bars = 0; const startBar = bar;
-      b.lines.forEach((ln) => {
-        const n = ln.syll <= spb * 1.25 ? 1 : ln.syll <= spb * 2.4 ? 2 : Math.ceil(ln.syll / spb);
-        timeline.push({ text: ln.text, rhyme: ln.rhyme, time: (startBar + bars) * barDur, bars: n, section: b.type });
-        bars += n;
-      });
-      bars = Math.max(4, Math.ceil(bars / 4) * 4);
-      sections.push({ type: b.type, bars }); bar += bars;
-    });
+    let hook = blocks.filter((b) => b.type === 'chorus').pop();
+    const verses = blocks.filter((b) => b.type !== 'chorus');
+    if (!targetBars) {
+      if (hook && blocks.length >= 2 && !V) blocks.push(hook); // coro final
+      blocks.forEach((b) => addBlock(b));
+    } else {
+      if (!hook) hook = verses.length > 1 ? verses.pop() : verses[0];
+      const seq = [];
+      if (verses.length && verses[0] !== hook) seq.push(['v', 0]);
+      seq.push(['h']);
+      seq.push(verses[1] && verses[1] !== hook ? ['v', 1] : ['c', 8]);
+      seq.push(['h']); seq.push(['c', 8]); seq.push(['h']);
+      let vi = 2;
+      while (bar < targetBars - 12) { seq.push(verses[vi] && verses[vi] !== hook ? ['v', vi++] : ['c', 8]); seq.push(['h']); if (seq.length > 40) break; }
+      for (const [k, x] of seq) {
+        if (bar >= targetBars - 4 && k !== 'h') continue;
+        if (k === 'v') addBlock(verses[x], 'verse');
+        else if (k === 'h') addBlock(hook, 'chorus');
+        else addChops(hook, x, 'verse');
+        if (bar >= targetBars) break;
+      }
+    }
   }
   if (V && !p.takeMode) {
     const need = Math.ceil(V.duration / barDur);
@@ -123,7 +153,7 @@ export function produce(p) {
   if (sections.length === 1) {
     ['verse', 'chorus', 'verse', 'chorus'].forEach((t) => { sections.push({ type: t, bars: 8 }); bar += 8; });
   }
-  sections.push({ type: 'outro', bars: 4 });
+  sections.push({ type: 'outro', bars: outro });
 
   const song = {
     genre, bpm, root, mode, prog, seed, sections, drums, kit, snareType,
