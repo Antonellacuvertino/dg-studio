@@ -147,18 +147,29 @@ function keyboard(t) {
   g.restore();
 }
 
-// ---------- texto tipo TikTok ----------
-function caption(str, alpha, y = 470) {
-  if (alpha <= 0) return;
-  g.save(); g.globalAlpha = alpha; g.translate(W / 2, y); g.rotate(-0.07);
-  g.font = '600 64px system-ui, "Segoe UI", Arial'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  const lines = str.split('\n');
-  lines.forEach((ln, i) => {
-    const yy = (i - (lines.length - 1) / 2) * 80;
-    g.lineWidth = 8; g.strokeStyle = 'rgba(0,0,0,.55)'; g.lineJoin = 'round'; g.strokeText(ln, 0, yy);
-    g.fillStyle = '#fff'; g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 16; g.fillText(ln, 0, yy); g.shadowBlur = 0;
-  });
-  g.restore();
+// ---------- textos estilo anuncio (limpios, sin inclinar) ----------
+const LINES = [
+  [0.5, DROP - 0.1, 'TU MÚSICA', 'empieza aquí'],
+  [DROP + 0.1, 5.6, 'ESCRIBE TU LETRA', 'y la app la convierte en canción'],
+  [5.6, T2, 'BEAT · VOZ · MEZCLA', 'todo en tu teléfono'],
+  [T2, T2 + BAR, 'BEATS DE TECHNO', 'listos en segundos'],
+  [T2 + BAR, T2 + 2 * BAR, 'TU VOZ CON AUTOTUNE', 'natural, fina, gruesa u otaku'],
+  [T2 + 2 * BAR, T3, 'MEZCLA PROFESIONAL', 'lista para subir y compartir'],
+  [T3 + 0.2, DUR, 'CREA TU PRIMER TEMA HOY', 'Creada por differentgyal'],
+];
+function proText(t) {
+  for (const [a, b, big, small] of LINES) {
+    if (t < a || t > b) continue;
+    const ain = ease((t - a) / 0.35), aout = b >= DUR ? 1 : clamp((b - t) / 0.2), al = ain * aout;
+    const y = 430 + (1 - ain) * 24;
+    g.save(); g.globalAlpha = al; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.shadowColor = 'rgba(0,0,0,.85)'; g.shadowBlur = 24;
+    g.letterSpacing = '6px'; let fs = 76; do { g.font = `900 ${fs}px system-ui, "Segoe UI", Arial`; fs -= 2; } while (g.measureText(big).width > 960 && fs > 40); g.fillStyle = '#fff'; g.fillText(big, W / 2, y);
+    // línea roja que se dibuja
+    g.shadowBlur = 0; const lw = 220 * ease((t - a - 0.15) / 0.4); g.fillStyle = '#ff2d4b'; g.fillRect(W / 2 - lw / 2, y + 58, lw, 5);
+    g.letterSpacing = '2px'; g.font = '600 40px system-ui, "Segoe UI", Arial'; g.fillStyle = big.startsWith('CREA') ? '#ff6b80' : '#e9d3d6'; g.shadowBlur = 18; g.fillText(small, W / 2, y + 112);
+    g.restore();
+  }
 }
 
 // ---------- cuadro completo ----------
@@ -197,6 +208,7 @@ export function frame(t) {
   g.fillStyle = v; g.fillRect(0, 0, W, H);
   const gx = (Math.floor(t * FPS) * 137) % 540, gy = (Math.floor(t * FPS) * 251) % 960;
   g.globalAlpha = 0.9; g.drawImage(grain, -gx, -gy, 1080, 1920); g.drawImage(grain, 1080 - gx, -gy, 1080, 1920); g.drawImage(grain, -gx, 1920 - gy, 1080, 1920); g.drawImage(grain, 1080 - gx, 1920 - gy, 1080, 1920); g.globalAlpha = 1;
+  proText(t);
   // destello suave en el drop
   if (t >= DROP && t < DROP + 0.15) { g.fillStyle = `rgba(255,60,90,${0.35 * (1 - (t - DROP) / 0.15)})`; g.fillRect(0, 0, W, H); }
   // fundidos de entrada y salida
