@@ -19,6 +19,8 @@ import { addSample } from '../studio/samples.js';
 import { openProject } from './studio.js';
 import { recordOverlay, fillPrompter, highlight, WavePlayer } from './shared.js';
 import { pickVoiceType } from './voicetypes.js';
+import { saveSongKit } from '../studio/songkit.js';
+import { sendToMulti } from '../multi/send.js';
 import { VOICE_TYPES } from '../voice/voice.js';
 
 let root = null;
@@ -144,7 +146,11 @@ async function handleAudio(buf, name, recorded) {
     await create();
   } else if (kind === 'song') {
     busy('Analizando la canción…');
-    try { S.dna = { name, dna: await analyzeSong(buf, (m) => busyText(m)) }; } finally { busy(false); }
+    try {
+      S.dna = { name, dna: await analyzeSong(buf, (m) => busyText(m)) };
+      const kit = await saveSongKit(S.dna.dna, name, (p, n) => busyText(`Guardando pistas parecidas… ${n} (${Math.round(p * 100)}%)`));
+      toast(`💾 ${kit.length} pistas parecidas guardadas en 🔁 Loops → Tus sonidos`, 4000);
+    } finally { busy(false); }
     S.dnaChoice = null; await askDna();
   }
 }
@@ -209,6 +215,7 @@ async function create({ variation = false } = {}) {
     S.flags = { hasVoice: !!voiceOpt.voice, recorded: !!useV, fromRef: !!useDna, fromSounds: !!S.sounds };
     if (!S.title || S.titleAuto !== false) { S.title = L && L.lines[0] ? L.lines[0].text.replace(/[^\p{L}\p{N} ¿?¡!']/gu, '').slice(0, 40) : `${GENRES[song.genre].name} ${song.bpm}`; S.titleAuto = true; }
   } finally { busy(false); }
+  state.lastSong = { buffer: S.mix, name: S.title || 'Canción', bpm: S.song.bpm };
   render();
   player.set(S.mix);
   root.querySelector('#result') && root.querySelector('#result').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -249,7 +256,9 @@ function resultCard() {
       h('button.btn', { onclick: action(recordOver) }, S.take ? '🎙️ Otra toma' : '🎙️ Grabar encima'),
       h('button.btn', { onclick: action(toStudio) }, '🎛️ Abrir en Estudio'),
       h('button.btn.primary', { onclick: action(downloadMp3) }, '⬇️ MP3'),
-      h('button.btn', { onclick: action(showLicense) }, '📜 Licencia')),
+      h('button.btn', { onclick: action(showLicense) }, '📜 Licencia'),
+      h('button.btn', { onclick: action(() => sendToMulti({ buffer: S.mix, name: S.title || 'Canción', bpm: S.song.bpm })) }, '📤 A Multipista'),
+      h('button.btn', { onclick: action(async () => { if (!S.vocals) { toast('Esta canción no tiene voz'); return; } emit('editVoice', { buffer: S.vocals, name: (S.title || 'Voz') + ' (voz)' }); }) }, '🎤 Editar la voz')),
     canSing || S.aiVoice ? h('button.btn.block', { style: { marginTop: '8px', borderColor: 'var(--gold)' }, onclick: action(aiVoice) }, S.aiVoice ? '🧬 Voz IA aplicada ✓ (cambiar)' : '🧬 Voz realista con IA (Colab)') : null,
     S.take ? h('div', { style: { marginTop: '8px' } }, slider('Sincronía', 0, { min: -0.3, max: 0.3, step: 0.01, fmt: (v) => `${Math.round(v * 1000)} ms`, onchange: action(async (v) => { busy('Re-sincronizando…'); try { S.mix = await renderSong(S.song, { voice: S.take, voiceOffset: S.takeOffset - v }); S.lastMp3 = null; } finally { busy(false); } player.set(S.mix); }) })) : null,
     pr);

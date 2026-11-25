@@ -3,9 +3,9 @@
 //  Todo queda en el dispositivo; nada se sube a internet.
 // ===============================================================
 const DB_NAME = 'dg-studio';
-const VERSION = 1;
+const VERSION = 2;
 let dbp = null;
-const mem = { projects: new Map(), samples: new Map(), kv: new Map() }; // respaldo si IndexedDB no está disponible
+const mem = { projects: new Map(), samples: new Map(), kv: new Map(), multis: new Map() }; // respaldo si IndexedDB no está disponible
 
 function open() {
   if (dbp) return dbp;
@@ -17,6 +17,7 @@ function open() {
         if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath: 'id' });
         if (!db.objectStoreNames.contains('samples')) db.createObjectStore('samples', { keyPath: 'id' });
         if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+        if (!db.objectStoreNames.contains('multis')) db.createObjectStore('multis', { keyPath: 'id' });
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => resolve(null);

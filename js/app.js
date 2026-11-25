@@ -11,8 +11,9 @@ import { initStudio, refreshStudio } from './views/studio.js';
 import { initLoops } from './views/loops.js';
 import { initVoice } from './views/voice.js';
 import { initAssistant } from './views/assistant.js';
+import { initMulti } from './views/multitrack.js';
 
-const TABS = ['create', 'studio', 'loops', 'voice', 'assistant'];
+const TABS = ['create', 'studio', 'multi', 'loops', 'voice', 'assistant'];
 
 function show(tab) {
   if (!TABS.includes(tab)) tab = 'create';
@@ -47,7 +48,7 @@ async function boot() {
   document.querySelectorAll('#tabs button').forEach((b) => (b.onclick = () => show(b.dataset.tab)));
   on('goto', show);
   // cada sección se inicia por separado: si una falla, las demás siguen funcionando
-  const inits = [[initStudio, 'v-studio'], [initCreate, 'v-create'], [initLoops, 'v-loops'], [initVoice, 'v-voice'], [initAssistant, 'v-assistant']];
+  const inits = [[initStudio, 'v-studio'], [initCreate, 'v-create'], [initMulti, 'v-multi'], [initLoops, 'v-loops'], [initVoice, 'v-voice'], [initAssistant, 'v-assistant']];
   for (const [fn, id] of inits) {
     try { await fn($(id)); } catch (e) { console.error(id, e); $(id).innerHTML = `<div class="card">⚠️ Esta sección no pudo cargar: ${e.message}</div>`; }
   }

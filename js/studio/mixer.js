@@ -29,6 +29,8 @@ export class Mixer {
     for (let i = 0; i < cc.length; i++) { const x = (i / (cc.length - 1)) * 2 - 1; cc[i] = Math.abs(x) < 0.7 ? x : Math.sign(x) * (0.7 + 0.28 * Math.tanh((Math.abs(x) - 0.7) / 0.28)); }
     clip.curve = cc;
     master.connect(this.masterHP).connect(this.masterLP).connect(comp).connect(clip).connect(this.analyser).connect(ctx.destination);
+    // grabadora: si está grabando "lo que suena", también enviar ahí
+    if (Mixer.tap && Mixer.tap.context === ctx) this.analyser.connect(Mixer.tap);
     this.master = master;
 
     // reverb por convolución (estable, sin pitidos)

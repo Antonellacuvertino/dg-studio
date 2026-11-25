@@ -15,6 +15,8 @@ import { addSample, listSamples, sampleBuffer } from '../studio/samples.js';
 import { recordOverlay } from './shared.js';
 import { renderGrid, loopView } from './beatgrid.js';
 import { soundNameSync } from '../studio/library.js';
+import { recorderCard } from './recordercard.js';
+import { sendToMulti } from '../multi/send.js';
 
 let P = null;               // proyecto abierto
 let root = null;
@@ -73,6 +75,7 @@ function render() {
     ui.view === 'tracks' ? trackList(scene) : matrix(),
     P.guide ? guideCard() : null,
     ui.view === 'tracks' && sel() ? editor(sel()) : null,
+    recorderCard(),
   );
 }
 const fmtDur = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
@@ -435,6 +438,7 @@ async function menu() {
     { id: 'mp3', label: '⬇️ Exportar tema en MP3', primary: true, sub: 'Con tu nombre y licencia en las etiquetas' },
     { id: 'wav', label: '💿 Exportar WAV (calidad DJ)', sub: 'Sin compresión, para tu USB o Rekordbox' },
     { id: 'loop', label: '🔁 Exportar escena actual como loop', sub: 'WAV de la escena seleccionada' },
+    { id: 'multi', label: '📤 Enviar el tema a Multipista', sub: 'Para sumarle voces y otros audios' },
     { id: 'key', label: `🎼 Tonalidad: ${keyLabel(P, NOTE_ES)}`, sub: 'Todas las notas se transponen solas' },
     { id: 'swing', label: `🎚️ Swing: ${Math.round((P.swing || 0) * 100)}%`, sub: 'Groove más suelto' },
     { id: 'guide', label: P.guide ? '✅ Ocultar guía DJ' : '🧭 Guía: track techno para DJ', sub: 'Paso a paso con tu proyecto' },
@@ -446,6 +450,7 @@ async function menu() {
   else if (id === 'open') await openMenu();
   else if (id === 'mp3' || id === 'wav') await exportSong(id);
   else if (id === 'loop') await exportScene();
+  else if (id === 'multi') { transport.stop(); busy('Mezclando el tema…'); let b; try { b = await renderProject(P, { onProgress: (p) => busyText(`Mezclando… ${Math.round(p * 100)}%`) }); } finally { busy(false); } await sendToMulti({ buffer: b, name: P.name, bpm: P.bpm }); }
   else if (id === 'key') await keyMenu();
   else if (id === 'swing') { const s = await sheet('Swing', { options: [0, 0.05, 0.1, 0.15, 0.2, 0.3].map((v) => ({ id: String(v), label: `${Math.round(v * 100)}%` })) }); if (s != null) { P.swing = +s; saveSoon(); render(); } }
   else if (id === 'guide') { P.guide = !P.guide; saveSoon(); render(); }

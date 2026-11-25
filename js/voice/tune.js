@@ -55,7 +55,7 @@ const nearestScale = (m, root, mode) => {
  * speed 0..1: 0 = lento/natural, 1 = instantáneo (efecto robótico)
  * transpose: semitonos
  */
-export async function autotune(buffer, { root = 9, mode = 'minor', amount = 0.8, speed = 0.7, transpose = 0, onProgress = null } = {}) {
+export async function autotune(buffer, { root = 9, mode = 'minor', amount = 0.8, speed = 0.7, transpose = 0, formant = 1, onProgress = null } = {}) {
   const x = await toMono44(buffer);
   const { f0, hop, frames } = await trackPitch(x, (p) => onProgress && onProgress(p * 0.6));
   // corrección por cuadro (suavizada según la velocidad)
@@ -86,11 +86,11 @@ export async function autotune(buffer, { root = 9, mode = 'minor', amount = 0.8,
   while (tOut < x.length) {
     while (mi < marks.length - 1 && Math.abs(marks[mi + 1].p - tOut) < Math.abs(marks[mi].p - tOut)) mi++;
     const m = marks[mi]; const r = m.v ? ratio[frameOf(m.p)] : 1;
-    const W = Math.round(m.T); const P = m.T / r; const g = Math.min(1.5, P / m.T);
+    const F = m.v ? formant : 1; const W = Math.max(8, Math.round(m.T / F)); const P = m.T / r; const g = Math.min(1.5, P / W);
     const c = Math.round(tOut);
     for (let j = -W; j < W; j++) {
-      const src = m.p + j, dst = c + j; if (src < 0 || src >= x.length || dst < 0) continue;
-      out[dst] += x[src] * (0.5 - 0.5 * Math.cos((Math.PI * (j + W)) / W)) * g;
+      const sp = m.p + j * F, dst = c + j; const si = Math.floor(sp); if (si < 0 || si + 1 >= x.length || dst < 0) continue;
+      const fr = sp - si; out[dst] += (x[si] * (1 - fr) + x[si + 1] * fr) * (0.5 - 0.5 * Math.cos((Math.PI * (j + W)) / W)) * g;
     }
     tOut += P;
   }

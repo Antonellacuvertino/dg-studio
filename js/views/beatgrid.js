@@ -14,6 +14,8 @@ import { soundNameSync, soundBuffer } from '../studio/library.js';
 import { transport, renderProject } from '../studio/sequencer.js';
 import { sampleBuffer } from '../studio/samples.js';
 import { pickSound } from './soundpicker.js';
+import { recorderCard } from './recordercard.js';
+import { sendToMulti } from '../multi/send.js';
 
 const ui = { page: 0 };
 
@@ -65,6 +67,8 @@ export function renderGrid(root, P, { save, rerender, openMenu, goAdvanced }) {
     h('div.grid2', {},
       h('button.btn', { onclick: action(() => exportBeat(P, 'mp3')) }, '⬇️ MP3'),
       h('button.btn', { onclick: action(() => exportBeat(P, 'wav')) }, '💿 WAV (DJ)')),
+    h('button.btn.block', { style: { marginTop: '8px' }, onclick: action(() => sendBeat(P)) }, '📤 Enviar a Multipista (para sumar voces y audios)'),
+    recorderCard(),
     h('p.muted.small', { style: { marginTop: '10px' } }, 'Para armar el tema completo (intro, subida, drop…), mezclar y usar el piano roll, entra en ⚙️ Avanzado: tus filas son las mismas pistas.'),
   );
 }
@@ -235,4 +239,19 @@ async function exportBeat(P, kind) {
     await shareOrSave(blob, `${safeName(state.artist)} - ${safeName(P.name)} (${P.bpm} BPM ${CAMELOT[P.mode][P.root]})${len === 'loop' ? ' loop' : ''}.${kind}`);
   } catch (e) { busy(false); throw e; }
   void projectSeconds;
+}
+
+async function sendBeat(P) {
+  transport.stop();
+  const what = await sheet('📤 Enviar a Multipista', { options: [{ id: 'song', label: '🎚️ Tema completo', primary: true, sub: 'Con intro, drops y final' }, { id: 'loop', label: '🔁 Loop de 8 compases' }] });
+  if (!what) return;
+  busy('Mezclando el beat…');
+  let buf;
+  try {
+    let proj = P;
+    if (what === 'loop') { const v = loopView(P); proj = { ...v, scenes: [{ id: 'x', name: 'Loop', fx: 'none', bars: 8, on: v.scenes[0].on }] }; }
+    else if (!P.scenes.some((s) => s.bars >= 8 && Object.keys(s.on).length)) P.scenes = djScenes(P);
+    buf = await renderProject(proj, { onProgress: (p) => busyText(`Mezclando el beat… ${Math.round(p * 100)}%`), tail: what === 'loop' ? 0 : 2 });
+  } finally { busy(false); }
+  await sendToMulti({ buffer: buf, name: P.name + (what === 'loop' ? ' (loop)' : ''), bpm: P.bpm });
 }

@@ -13,6 +13,8 @@ import { transport } from '../studio/sequencer.js';
 import { addSample, listSamples, deleteSample, sampleBuffer, updateSample } from '../studio/samples.js';
 import { currentProject, addTrack, newFromStyle } from './studio.js';
 import { recordOverlay } from './shared.js';
+import { saveSongKit } from '../studio/songkit.js';
+import { sendToMulti } from '../multi/send.js';
 
 let root = null;
 const ui = { cat: 'kick', playing: null };
@@ -105,8 +107,10 @@ async function ownMenu(s) {
     { id: 'name', label: '✎ Renombrar' },
     { id: 'bpm', label: `⏱ BPM: ${s.bpm || 'sin detectar'}`, sub: 'Corrige el tempo si lo detecté mal' },
     { id: 'kind', label: `Tipo: ${{ loop: 'Loop', oneshot: 'Golpe', audio: 'Voz/audio' }[s.kind]}`, sub: 'Loop = se repite al tempo · Golpe = se toca por pasos' },
+    { id: 'multi', label: '📤 Enviar a Multipista' },
     { id: 'del', label: '🗑 Borrar', danger: true },
   ] });
+  if (id === 'multi') { await sendToMulti({ sampleId: s.id, name: s.name, dur: s.dur }); return; }
   if (id === 'name') { const v = await prompt('Nombre', s.name); if (v) { s.name = v; await updateSample(s); } }
   else if (id === 'bpm') { const v = await prompt('BPM del loop', String(s.bpm || '')); if (v && +v) { s.bpm = Math.round(+v); s.bars = Math.max(1, Math.round((s.dur * s.bpm) / 240)); await updateSample(s); } }
   else if (id === 'kind') { const k = await sheet('Tipo de sonido', { options: [{ id: 'loop', label: 'Loop' }, { id: 'oneshot', label: 'Golpe (one-shot)' }, { id: 'audio', label: 'Voz / audio largo' }] }); if (k) { s.kind = k; await updateSample(s); } }
@@ -152,11 +156,17 @@ async function recreate() {
   const f = await pickFile(); if (!f) return;
   busy('Escuchando la canción…');
   let dna, buf;
-  try { buf = await decode(f); dna = await analyzeSong(buf, (m) => busyText(m)); } finally { busy(false); }
+  let kit = [];
+  try {
+    buf = await decode(f); dna = await analyzeSong(buf, (m) => busyText(m));
+    kit = await saveSongKit(dna, f.name.replace(/\.[^.]+$/, ''), (p, n) => busyText(`Creando pistas parecidas… ${n} (${Math.round(p * 100)}%)`));
+  } finally { busy(false); }
+  renderOwn();
+  toast(`💾 ${kit.length} pistas parecidas guardadas en Tus sonidos`, 4000);
   const G = GENRES[dna.genre];
   const cam = CAMELOT[dna.mode][dna.root];
   const id = await sheet(`🧬 ${f.name.replace(/\.[^.]+$/, '')}`, {
-    text: `Tempo: ${dna.bpm} BPM\nTonalidad: ${NOTE_ES[dna.root]} ${dna.mode === 'minor' ? 'menor' : 'mayor'} · Camelot ${cam}\nEstilo parecido: ${G.emoji} ${G.name}\nBatería detectada: ${dna.separated ? 'sí (bombo y caja separados)' : 'aproximada (usé el patrón del estilo)'}`,
+    text: `✅ Guardé ${kit.length} pistas parecidas en Tus sonidos (bombo, caja, hats, bajo, acordes, melodía y beat completo).\n\nTempo: ${dna.bpm} BPM\nTonalidad: ${NOTE_ES[dna.root]} ${dna.mode === 'minor' ? 'menor' : 'mayor'} · Camelot ${cam}\nEstilo parecido: ${G.emoji} ${G.name}\nBatería detectada: ${dna.separated ? 'sí (bombo y caja separados)' : 'aproximada (usé el patrón del estilo)'}`,
     options: [
       { id: 'same', label: `✨ Proyecto parecido (${G.name})`, primary: true, sub: 'Mismo BPM, tono y groove; instrumentos nuevos' },
       { id: 'techno', label: '⛓️ Versión hard techno', sub: `Su tonalidad y groove, llevado a ${Math.max(145, dna.bpm)} BPM` },

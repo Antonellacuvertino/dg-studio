@@ -14,6 +14,7 @@ import { addSample } from '../studio/samples.js';
 import { currentProject } from './studio.js';
 import { recordOverlay, WavePlayer } from './shared.js';
 import { voiceTypeCards } from './voicetypes.js';
+import { voiceEditorCard, loadIntoEditor } from './voiceeditor.js';
 import { startRecorder } from '../core/audio.js';
 
 let root = null;
@@ -24,13 +25,17 @@ export async function initVoice(el) {
   root = el; await loadProfile(); render();
   on('tab', (t) => { if (t === 'voice') render(); else if (player) player.stop(); });
   on('profile', () => render());
+  on('editVoice', async ({ buffer, name }) => { emit('goto', 'voice'); await loadIntoEditor(buffer, name); render(); });
 }
 
 function render() {
   if (!root) return;
   root.innerHTML = '';
   put(root, h('h2.vt', {}, '🎤 Voz'), h('p.vs', {}, 'Tu voz, cómo suena al cantar tus letras, y un afinador (autotune) para tus grabaciones reales.'),
-    profileCard(), settingsCard(), tunerCard());
+    voiceEditorCard(() => render()),
+    h('h2.vt', { style: { fontSize: '18px', marginTop: '22px' } }, '🗣️ Voz que canta tus letras'),
+    h('p.vs', {}, 'Para cuando escribes una letra en ✍️ Crear y quieres que la app la cante.'),
+    profileCard(), settingsCard());
 }
 
 // ---------- perfil ----------
@@ -137,58 +142,3 @@ function settingsCard() {
     h('p.muted.small', {}, 'Consejo: Autotune 20–40% suena más natural; 80–100% es el efecto robótico del trap/reggaetón. Para cambiar nota por nota usa "🎼 Editar melodía" en ✍️ Crear.'));
 }
 
-// ---------- afinador (autotune real) ----------
-function tunerCard() {
-  const s = tuneState;
-  player = player || new WavePlayer();
-  const card = h('div.card', {},
-    h('h3', {}, '🎯 Afinar mi grabación (autotune)'),
-    h('p.muted.small', { style: { margin: '0 0 10px' } }, 'Graba o sube tu voz real cantando. La afino a la escala que elijas, sin cambiar la velocidad.'),
-    h('div.grid2', {},
-      h('button.btn', { onclick: action(async () => { const r = await recordOverlay('Canta…'); if (r) await loadTake(r.buffer, 'Grabación'); }) }, '🎙️ Grabar'),
-      h('button.btn', { onclick: action(async () => { const f = await pickFile(); if (f) { busy('Abriendo…'); try { await loadTake(await decode(f), f.name.replace(/\.[^.]+$/, '')); } finally { busy(false); } } }) }, '📁 Subir')));
-  if (s.orig) {
-    const P = currentProject();
-    put(card, 
-      h('div.sep'),
-      h('div.row.wrap', { style: { gap: '6px' } }, h('b', {}, s.name), h('span.muted.small', {}, `${s.orig.duration.toFixed(1)} s`)),
-      h('div.muted.small', { style: { marginTop: '8px' } }, `Escala: ${NOTE_ES[s.root]} ${s.mode === 'minor' ? 'menor' : 'mayor'}`),
-      h('div.row.wrap', { style: { gap: '6px', margin: '6px 0' } },
-        h('button.btn.sm', { onclick: action(async () => { const r = await sheet('Nota base', { grid: true, options: NOTE_ES.map((n, i) => ({ id: String(i), label: n })) }); if (r != null) { s.root = +r; render(); } }) }, '🎼 Cambiar nota'),
-        h('button.btn.sm', { onclick: () => { s.mode = s.mode === 'minor' ? 'major' : 'minor'; render(); } }, s.mode === 'minor' ? '→ Mayor' : '→ Menor'),
-        P ? h('button.btn.sm', { onclick: () => { s.root = P.root; s.mode = P.mode; render(); } }, `= Proyecto (${NOTE_ES[P.root]})`) : null),
-      slider('Corrección', s.amount, { onchange: (x) => (s.amount = x) }),
-      slider('Velocidad', s.speed, { fmt: (x) => (x > 0.85 ? 'Robot' : x < 0.3 ? 'Suave' : Math.round(x * 100) + '%'), onchange: (x) => (s.speed = x) }),
-      slider('Tono', s.transpose, { min: -12, max: 12, step: 1, fmt: (x) => `${x > 0 ? '+' : ''}${x} st`, onchange: (x) => (s.transpose = x) }),
-      h('button.btn.primary.block', { style: { marginTop: '8px' }, onclick: action(runTune) }, '🎯 Afinar'),
-      s.tuned ? h('div', {},
-        h('div.row', { style: { marginTop: '10px', gap: '6px' } },
-          h('button.btn.sm', { onclick: () => { player.set(s.orig); player.play(0); } }, 'A · Original'),
-          h('button.btn.sm.primary', { onclick: () => { player.set(s.tuned); player.play(0); } }, 'B · Afinada')),
-        player.el,
-        h('div.grid3', { style: { marginTop: '10px' } },
-          h('button.btn.sm', { onclick: () => { emit('useVoice', { buffer: s.tuned, name: s.name + ' (afinada)' }); emit('goto', 'create'); } }, '✍️ Usar en Crear'),
-          h('button.btn.sm', { onclick: action(async () => { await addSample({ name: s.name + ' afinada', buffer: s.tuned, kind: 'audio' }); toast('Guardada en 🔁 Loops → Tus sonidos'); }) }, '💾 A mis sonidos'),
-          h('button.btn.sm', { onclick: action(() => shareOrSave(toWav(s.tuned), `${safeName(s.name)} afinada.wav`)) }, '⬇️ WAV'))) : null);
-    if (s.tuned) player.set(s.tuned);
-  }
-  return card;
-}
-async function loadTake(buf, name) {
-  const s = tuneState; s.orig = buf; s.tuned = null; s.name = name;
-  busy('Detectando tu tonalidad…');
-  try {
-    const x = await toMono44(buf); const { f0 } = await trackPitch(x);
-    const k = detectKeyFromPitch(f0); s.root = k.root; s.mode = k.mode;
-    toast(`Parece ${NOTE_ES[k.root]} ${k.mode === 'minor' ? 'menor' : 'mayor'}`);
-  } finally { busy(false); }
-  render();
-}
-async function runTune() {
-  const s = tuneState; if (!s.orig) return;
-  audio(); stopPreview();
-  busy('Afinando tu voz…');
-  try { s.tuned = await autotune(s.orig, { root: s.root, mode: s.mode, amount: s.amount, speed: s.speed, transpose: s.transpose, onProgress: (p) => busyText(`Afinando tu voz… ${Math.round(p * 100)}%`) }); }
-  finally { busy(false); }
-  render(); player.play(0);
-}
