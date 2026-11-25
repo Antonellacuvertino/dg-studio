@@ -31,7 +31,7 @@ export async function initVoice(el) {
 function render() {
   if (!root) return;
   root.innerHTML = '';
-  put(root, h('h2.vt', {}, '🎤 Voz'), h('p.vs', {}, 'Tu voz, cómo suena al cantar tus letras, y un afinador (autotune) para tus grabaciones reales.'),
+  put(root, h('h2.vt', {}, '🎤 Voz'), h('p.vs', {}, 'Importa tu voz y edítala (autotune, tono, efectos), o configura cómo canta la app tus letras.'),
     voiceEditorCard(() => render()),
     h('h2.vt', { style: { fontSize: '18px', marginTop: '22px' } }, '🗣️ Voz que canta tus letras'),
     h('p.vs', {}, 'Para cuando escribes una letra en ✍️ Crear y quieres que la app la cante.'),
