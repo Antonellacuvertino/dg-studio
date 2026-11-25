@@ -12,11 +12,14 @@ import { initLoops } from './views/loops.js';
 import { initVoice } from './views/voice.js';
 import { initAssistant } from './views/assistant.js';
 import { initMulti } from './views/multitrack.js';
+import { initEar } from './views/ear.js';
 
-const TABS = ['create', 'studio', 'multi', 'loops', 'voice', 'assistant'];
+// Versión beta (link /beta/): solo Estudio y Loops, para que otros productores la prueben
+export const BETA = !!window.DG_BETA;
+const TABS = BETA ? ['studio', 'loops'] : ['create', 'studio', 'multi', 'loops', 'voice', 'assistant', 'ear'];
 
 function show(tab) {
-  if (!TABS.includes(tab)) tab = 'create';
+  if (!TABS.includes(tab)) { if (BETA && state.tab) { toast('En la beta solo están 🎛️ Estudio y 🔁 Loops'); return; } tab = TABS[0]; }
   closeSheet(); stopPreview();
   state.tab = tab;
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === `v-${tab}`));
@@ -24,7 +27,7 @@ function show(tab) {
   emit('tab', tab);
   if (tab === 'studio') refreshStudio();
   window.scrollTo({ top: 0 });
-  db.kvSet('tab', tab);
+  db.kvSet(BETA ? 'betaTab' : 'tab', tab);
 }
 
 async function migrateOld() {
@@ -45,14 +48,17 @@ async function boot() {
     const v = await prompt('Nombre artístico (aparece en tus MP3 y licencias)', state.artist);
     if (v) { await setArtist(v); $('artistName').textContent = v; toast('Nombre guardado'); }
   });
-  document.querySelectorAll('#tabs button').forEach((b) => (b.onclick = () => show(b.dataset.tab)));
+  document.querySelectorAll('#tabs button').forEach((b) => { if (!TABS.includes(b.dataset.tab)) b.remove(); else b.onclick = () => show(b.dataset.tab); });
+  document.documentElement.style.setProperty('--tabs', String(TABS.length));
+  if (BETA) { document.body.classList.add('beta'); document.querySelector('.logo').insertAdjacentHTML('beforeend', ' <span class="betatag">BETA</span>'); }
   on('goto', show);
   // cada sección se inicia por separado: si una falla, las demás siguen funcionando
-  const inits = [[initStudio, 'v-studio'], [initCreate, 'v-create'], [initMulti, 'v-multi'], [initLoops, 'v-loops'], [initVoice, 'v-voice'], [initAssistant, 'v-assistant']];
+  const all = [[initStudio, 'v-studio'], [initCreate, 'v-create'], [initMulti, 'v-multi'], [initLoops, 'v-loops'], [initVoice, 'v-voice'], [initAssistant, 'v-assistant'], [initEar, 'v-ear']];
+  const inits = all.filter(([, id]) => TABS.includes(id.slice(2)));
   for (const [fn, id] of inits) {
     try { await fn($(id)); } catch (e) { console.error(id, e); $(id).innerHTML = `<div class="card">⚠️ Esta sección no pudo cargar: ${e.message}</div>`; }
   }
-  show(await db.kvGet('tab', 'create'));
+  show(await db.kvGet(BETA ? 'betaTab' : 'tab', TABS[0]));
   document.addEventListener('visibilitychange', () => { if (document.hidden && transport.playing) transport.stop(); });
 }
 boot().catch((e) => { console.error(e); toast('⚠️ Error al iniciar: ' + e.message, 6000); });

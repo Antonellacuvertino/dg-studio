@@ -13,7 +13,7 @@ import { SYNTHS, DRUM_LIST, SCENE_FX, CAMELOT, TECHNO, newTrack, newScene, makeP
 import { transport, renderProject } from '../studio/sequencer.js';
 import { addSample, listSamples, sampleBuffer } from '../studio/samples.js';
 import { recordOverlay, soundHelp } from './shared.js';
-import { renderGrid, loopView } from './beatgrid.js';
+import { renderGrid, loopView, nameSong } from './beatgrid.js';
 import { soundNameSync } from '../studio/library.js';
 import { recorderCard } from './recordercard.js';
 import { sendToMulti } from '../multi/send.js';
@@ -61,7 +61,7 @@ function render() {
   put(root, 
     h('div.row', { style: { marginTop: '12px' } },
       h('div.grow', {},
-        h('h2.vt', { style: { margin: '0' } }, P.name),
+        h('h2.vt.rename', { title: 'Cambiar nombre', style: { margin: '0', cursor: 'pointer' }, onclick: action(async () => { if (await nameSong(P, saveSoon)) render(); }) }, P.name, h('span.pen', {}, ' ✎')),
         h('div.muted.small', {}, `${GENRES[P.genre] ? GENRES[P.genre].emoji + ' ' + GENRES[P.genre].name + ' · ' : ''}${keyLabel(P, NOTE_ES)} · ${fmtDur(projectSeconds(P))}`)),
       h('button.btn.sm', { onclick: () => { transport.stop(); ui.easy = true; db.kvSet('studioEasy', true); render(); } }, '🟥 Fácil'),
       h('button.btn.sm', { onclick: action(menu) }, '⋯')),
@@ -442,7 +442,7 @@ async function menu() {
     { id: 'key', label: `🎼 Tonalidad: ${keyLabel(P, NOTE_ES)}`, sub: 'Todas las notas se transponen solas' },
     { id: 'swing', label: `🎚️ Swing: ${Math.round((P.swing || 0) * 100)}%`, sub: 'Groove más suelto' },
     { id: 'guide', label: P.guide ? '✅ Ocultar guía DJ' : '🧭 Guía: track techno para DJ', sub: 'Paso a paso con tu proyecto' },
-    { id: 'rename', label: '✎ Renombrar proyecto' },
+    { id: 'rename', label: '✎ Ponerle nombre a la canción' },
     { id: 'dup', label: '⧉ Duplicar proyecto' },
   ] });
   if (!id) return;
@@ -454,7 +454,7 @@ async function menu() {
   else if (id === 'key') await keyMenu();
   else if (id === 'swing') { const s = await sheet('Swing', { options: [0, 0.05, 0.1, 0.15, 0.2, 0.3].map((v) => ({ id: String(v), label: `${Math.round(v * 100)}%` })) }); if (s != null) { P.swing = +s; saveSoon(); render(); } }
   else if (id === 'guide') { P.guide = !P.guide; saveSoon(); render(); }
-  else if (id === 'rename') { const v = await prompt('Nombre del proyecto', P.name); if (v) { P.name = v; saveSoon(); render(); } }
+  else if (id === 'rename') { if (await nameSong(P, saveSoon)) render(); }
   else if (id === 'dup') { const c = JSON.parse(JSON.stringify(P)); c.id = uid(); c.name += ' (copia)'; c.created = Date.now(); await openProject(c); }
 }
 export async function newFromStyle(preset = null, opts = {}) {
@@ -466,6 +466,8 @@ export async function newFromStyle(preset = null, opts = {}) {
   }
   const p = makeProject(g, opts);
   await openProject(p);
+  // creado a mano desde el menú: pedir el nombre altiro
+  if (!preset && !opts.name) { if (await nameSong(p, saveSoon, 'Ponle nombre a tu canción')) render(); }
   return p;
 }
 async function openMenu() {
@@ -496,6 +498,8 @@ function tagsFor(buf) {
 }
 async function exportSong(kind) {
   transport.stop();
+  if (!P.named && !(await nameSong(P, saveSoon, '¿Cómo se llama tu canción?'))) return;
+  render();
   busy('Mezclando el tema…');
   try {
     const buf = await renderProject(P, { onProgress: (p) => busyText(`Mezclando el tema… ${Math.round(p * 100)}%`) });

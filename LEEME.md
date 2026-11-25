@@ -38,3 +38,7 @@ Los sonidos son sintetizados por la app o muestras de dominio público (CC0), as
 
 ## Datos
 Proyectos, sonidos y tu voz se guardan **solo en tu dispositivo** (no se suben a internet). Si borras los datos de Safari se pierden: exporta tus temas.
+
+## Versión beta (para productores que prueban la app)
+- Link: `https://antonellacuvertino.github.io/dg-studio/beta/`. Solo muestra 🎛️ Estudio y 🔁 Loops (subir canciones y guardar sus sets incluido).
+- `beta/index.html` y `manifest-beta.json` se generan con `python tools/make_beta.py`. Córrelo cada vez que cambies `index.html`.

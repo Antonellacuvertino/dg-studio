@@ -1,0 +1,26 @@
+{
+  "name": "DG Studio Beta — differentgyal",
+  "short_name": "DG Beta",
+  "description": "Beta de DG Studio: Estudio y Loops.",
+  "start_url": "./beta/",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0405",
+  "theme_color": "#4c0410",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "./beta/"
+}

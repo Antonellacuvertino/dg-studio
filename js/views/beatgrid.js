@@ -22,6 +22,14 @@ import { sendToMulti } from '../multi/send.js';
 const ui = { page: 0 };
 
 // Vista "loop": todas las pistas suenan a la vez, en bucle
+// Ponerle nombre a la canción (se usa en el título, en Mis proyectos y en el MP3)
+export async function nameSong(P, save, title = 'Nombre de tu canción') {
+  const v = await prompt(title, P.named ? P.name : '', 'Ej: Fuego hasta el amanecer');
+  if (!v || !v.trim()) return false;
+  P.name = v.trim().slice(0, 60); P.named = true; save && save();
+  toast(`✎ Guardada como "${P.name}"`);
+  return true;
+}
 export function loopView(P) {
   const scene = { id: 'grid', name: 'Loop', fx: 'none', get bars() { return Math.max(1, ...P.tracks.map((t) => (t.pattern.len || 16) / 16)); }, get on() { return Object.fromEntries(P.tracks.map((t) => [t.id, true])); } };
   return { get bpm() { return P.bpm; }, get swing() { return P.swing; }, get root() { return P.root; }, get mode() { return P.mode; }, get master() { return P.master; }, get tracks() { return P.tracks; }, scenes: [scene], id: P.id, name: P.name };
@@ -53,7 +61,7 @@ export function renderGrid(root, P, { save, rerender, openMenu, goAdvanced }) {
 
   put(root,
     h('div.row', { style: { marginTop: '12px' } },
-      h('div.grow', {}, h('h2.vt', { style: { margin: 0 } }, P.name), h('div.muted.small', {}, `${G ? G.emoji + ' ' + G.name + ' · ' : ''}${NOTE_ES[P.root]} ${P.mode === 'minor' ? 'menor' : 'mayor'} · ${CAMELOT[P.mode][P.root]}`)),
+      h('div.grow', {}, h('h2.vt.rename', { title: 'Cambiar nombre', style: { margin: 0, cursor: 'pointer' }, onclick: action(async () => { if (await nameSong(P, save)) rerender(); }) }, P.name, h('span.pen', {}, ' ✎')), h('div.muted.small', {}, `${G ? G.emoji + ' ' + G.name + ' · ' : ''}${NOTE_ES[P.root]} ${P.mode === 'minor' ? 'menor' : 'mayor'} · ${CAMELOT[P.mode][P.root]}`)),
       h('button.btn.sm', { onclick: action(openMenu) }, '⋯')),
     h('div.transport', {}, h('div.row', {}, play, bpm, h('div.grow'), h('button.btn.sm.always', { title: '¿No suena?', onclick: () => soundHelp() }, '🔊?'), h('button.btn.sm', { onclick: goAdvanced }, '⚙️ Avanzado'))),
     h('div.muted.small', { style: { margin: '10px 2px 4px' } }, '1️⃣ Elige un estilo'),
@@ -67,8 +75,8 @@ export function renderGrid(root, P, { save, rerender, openMenu, goAdvanced }) {
       h('button.btn', { onclick: () => { P.tracks.forEach((t) => { if (t.kind === 'drum') t.pattern.steps = vary(t); }); save(); rerender(); } }, '🎲 Variar ritmo')),
     h('div.muted.small', { style: { margin: '14px 2px 4px' } }, '3️⃣ Guarda tu beat'),
     h('div.grid2', {},
-      h('button.btn', { onclick: action(() => exportBeat(P, 'mp3')) }, '⬇️ MP3'),
-      h('button.btn', { onclick: action(() => exportBeat(P, 'wav')) }, '💿 WAV (DJ)')),
+      h('button.btn', { onclick: action(() => exportBeat(P, 'mp3', save, rerender)) }, '⬇️ MP3'),
+      h('button.btn', { onclick: action(() => exportBeat(P, 'wav', save, rerender)) }, '💿 WAV (DJ)')),
     h('button.btn.block', { style: { marginTop: '8px' }, onclick: action(() => sendBeat(P)) }, '📤 Enviar a Multipista (para sumar voces y audios)'),
     recorderCard(),
     h('p.muted.small', { style: { marginTop: '10px' } }, 'Para armar el tema completo (intro, subida, drop…), mezclar y usar el piano roll, entra en ⚙️ Avanzado: tus filas son las mismas pistas.'),
@@ -221,8 +229,9 @@ async function auditionSynth(t, P) {
   if (pr.fn === 'bass') aSynth._bass(pr.type, tt, midi, 0.25, 1); else aSynth._voice(pr.type, tt, midi, 0.25, 1);
 }
 
-async function exportBeat(P, kind) {
+async function exportBeat(P, kind, save, rerender) {
   transport.stop();
+  if (!P.named) { if (!(await nameSong(P, save, '¿Cómo se llama tu canción?'))) return; rerender && rerender(); }
   const len = await sheet('¿Qué exporto?', { options: [
     { id: 'loop', label: '🔁 El loop (8 compases)', sub: 'Para practicar o rapear encima' },
     { id: 'song', label: '🎚️ Tema completo con estructura', primary: true, sub: TECHNO.has(P.genre) ? 'Intro, groove, subida, drop, break… (~4 min, ideal DJ)' : 'Usa las escenas del modo Avanzado' },
