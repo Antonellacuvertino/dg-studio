@@ -6,7 +6,7 @@
 import { Synth, drumBank, SR, renderOne } from '../engine/synth.js';
 import { SYNTHS, degToMidi } from './model.js';
 import { Mixer } from './mixer.js';
-import { loadProjectSamples } from './samples.js';
+import { loadProjectSamples, sampleGain } from './samples.js';
 import { loadProjectLib } from './library.js';
 import { audio } from '../core/audio.js';
 
@@ -73,7 +73,7 @@ export class Player {
       if (tr.kind === 'drum') {
         const v = tr.pattern.steps[i]; if (!v) continue;
         const buf = tr.sampleId ? this.samples.get(tr.sampleId) : tr.sound && tr.sound.startsWith('lib:') ? this.lib.get(tr.sound) : this.bank[tr.sound === 'hat' && i % 2 ? 'hat2' : tr.sound];
-        if (buf) this.play(buf, tt, v, ch, rate);
+        if (buf) this.play(buf, tt, v * (tr.sampleId ? sampleGain(buf) : 1), ch, rate);
         if (tr.role === 'kick' || /kick/.test(tr.sound)) mx.duckAt(tt, sd);
       } else if (tr.kind === 'synth') {
         const pr = SYNTHS[tr.preset] || SYNTHS.lead;
@@ -92,12 +92,12 @@ export class Player {
         const buf = this.samples.get(tr.sampleId); if (!buf) continue;
         if (tr.mode === 'loop') {
           const every = Math.max(1, tr.loopBars || 1) * 16;
-          if (s % every === 0) this.play(buf, t, 1, ch, (tr.sampleBpm ? p.bpm / tr.sampleBpm : 1) * rate, Math.min(every, steps - s) * sd);
-        } else { const v = tr.pattern.steps[i]; if (v) this.play(buf, tt, v, ch, rate); }
+          if (s % every === 0) this.play(buf, t, sampleGain(buf), ch, (tr.sampleBpm ? p.bpm / tr.sampleBpm : 1) * rate, Math.min(every, steps - s) * sd);
+        } else { const v = tr.pattern.steps[i]; if (v) this.play(buf, tt, v * sampleGain(buf), ch, rate); }
       } else if (tr.kind === 'audio') {
         const buf = this.samples.get(tr.sampleId);
         const off = tr.sync ? p.scenes.slice(0, sceneIdx).reduce((a, x) => a + x.bars * 16, 0) * sd : 0;
-        if (buf && s === 0 && off < buf.duration) this.play(buf, t, 1, ch, 1, steps * sd, off);
+        if (buf && s === 0 && off < buf.duration) this.play(buf, t, sampleGain(buf), ch, 1, steps * sd, off);
       }
     }
     // Subida: redoble en el último compás

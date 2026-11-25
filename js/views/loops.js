@@ -87,7 +87,25 @@ async function renderOwn() {
   const box = root && root.querySelector('#ownList'); if (!box) return;
   const list = await listSamples(); box.innerHTML = '';
   if (!list.length) { box.append(h('p.muted.small', {}, 'Aún no tienes sonidos. Sube loops, golpes o grabaciones: se guardan aquí para usarlos en tus tracks.')); return; }
-  list.forEach((s) => {
+  const groups = new Map(); const loose = [];
+  list.forEach((s) => { const song = s.tags && s.tags.includes('kit') ? s.tags.find((x) => x !== 'kit' && x !== 'cancion') : (s.tags && s.tags.includes('cancion') ? s.tags.find((x) => x !== 'cancion') : null); if (song) { if (!groups.has(song)) groups.set(song, []); groups.get(song).push(s); } else loose.push(s); });
+  groups.forEach((items, song) => {
+    const body = h('div.kitbody');
+    const det = h('details.kitset', { open: groups.size === 1 }, h('summary', {}, h('b', {}, `🧬 ${song}`), h('span.muted.small', {}, ` · ${items.length} pistas`)), body);
+    det.append(h('button.btn.sm', { style: { margin: '6px 0' }, onclick: () => addSet(items) }, '＋ Agregar todo el set al Estudio'));
+    items.sort((a, b) => (a.tags.includes('cancion') ? -1 : b.tags.includes('cancion') ? 1 : a.date - b.date)).forEach((s) => body.append(ownRow(s)));
+    box.append(det);
+  });
+  loose.forEach((s) => box.append(ownRow(s)));
+}
+function addSet(items) {
+  if (!currentProject()) { toast('Abre un proyecto en el Estudio'); return; }
+  const kit = items.filter((s) => s.tags.includes('kit') && !/Beat completo/.test(s.name));
+  kit.forEach((s) => addOwn(s, true));
+  toast(`＋ ${kit.length} pistas del set agregadas (con volumen nivelado)`);
+}
+function ownRow(s) {
+  {
     const pb = h('button.lp', { 'data-own': s.id }, '▶');
     pb.onclick = async () => {
       if (pb.classList.contains('on')) { stopPreview(); return; }
@@ -96,11 +114,11 @@ async function renderOwn() {
       pb.classList.add('on'); pb.textContent = '■';
       playPreview(b, { onend: () => { pb.classList.remove('on'); pb.textContent = '▶'; } });
     };
-    box.append(h('div.loop', {}, pb,
+    return h('div.loop', {}, pb,
       h('div.ln', {}, h('b', {}, s.name), h('span', {}, `${s.dur.toFixed(1)} s${s.bpm ? ` · ${s.bpm} BPM · ${s.bars} comp.` : ''} · ${{ loop: 'loop', oneshot: 'golpe', audio: 'voz/audio' }[s.kind] || s.kind}`)),
       h('button.btn.sm', { onclick: action(() => ownMenu(s)) }, '⋯'),
-      h('button.btn.sm.primary', { onclick: () => addOwn(s) }, '＋')));
-  });
+      h('button.btn.sm.primary', { onclick: () => addOwn(s) }, '＋'));
+  }
 }
 async function ownMenu(s) {
   const id = await sheet(s.name, { options: [
@@ -122,6 +140,7 @@ async function uploadOwn() {
   busy('Analizando el sonido…');
   try {
     const buf = await decode(f);
+    if (buf.duration >= 20) { await songToLibrary(f, buf); return; }
     const { bpm, conf } = await quickTempo(buf);
     const kind = buf.duration < 1.5 ? 'oneshot' : buf.duration > 40 ? 'audio' : 'loop';
     const rec = await addSample({ name: f.name.replace(/\.[^.]+$/, '').slice(0, 40), blob: f, buffer: buf, bpm: kind === 'loop' && conf > 0.1 ? bpm : null, kind });
@@ -129,18 +148,30 @@ async function uploadOwn() {
   } finally { busy(false); }
   renderOwn();
 }
+// Canción subida → se guarda sola en tu biblioteca junto con su set de pistas parecidas
+async function songToLibrary(f, buf, dna = null) {
+  const name = f.name.replace(/\.[^.]+$/, '').slice(0, 40);
+  if (!dna) dna = await analyzeSong(buf, (m) => busyText(m));
+  busyText('Guardando la canción en tu biblioteca…');
+  await addSample({ name: `${name} (original)`, blob: f, buffer: buf, bpm: dna.bpm, kind: 'audio', tags: ['cancion', name] });
+  const kit = await saveSongKit(dna, name, (p, n) => busyText(`Guardando el set… ${n} (${Math.round(p * 100)}%)`));
+  busy(false); renderOwn();
+  toast(`💾 "${name}" + ${kit.length} pistas guardadas en Tus sonidos`, 4000);
+  return { dna, kit };
+}
 async function recordOwn() {
   const r = await recordOverlay('Graba un sonido, ritmo o voz…'); if (!r) return;
   const name = await prompt('Nombre del sonido', 'Grabación ' + new Date().toLocaleTimeString());
   await addSample({ name: name || 'Grabación', blob: r.blob, buffer: r.buffer, kind: r.buffer.duration < 1.5 ? 'oneshot' : 'audio' });
   renderOwn();
 }
-function addOwn(s) {
+function addOwn(s, quiet = false) {
   if (!currentProject()) { toast('Abre un proyecto en el Estudio'); return; }
   const P = currentProject();
-  let t;
-  if (s.kind === 'loop') t = newTrack('sample', { name: s.name.slice(0, 24), role: 'perc', sampleId: s.id, mode: 'loop', sampleBpm: s.bpm || P.bpm, loopBars: s.bars || 1 });
-  else if (s.kind === 'audio') t = newTrack('audio', { name: s.name.slice(0, 24), role: 'vox', sampleId: s.id });
+  let t; const nm = s.name.replace(/^.*? · /, '').slice(0, 24) || s.name.slice(0, 24);
+  // las pistas de un set entran con volumen más bajo para que la mezcla tenga aire
+  if (s.kind === 'loop') t = newTrack('sample', { name: nm, role: 'perc', sampleId: s.id, mode: 'loop', sampleBpm: s.bpm || P.bpm, loopBars: s.bars || 1, vol: 0.7 });
+  else if (s.kind === 'audio') t = newTrack('audio', { name: s.name.slice(0, 24), role: 'vox', sampleId: s.id, vol: 0.7 });
   else t = newTrack('drum', { name: s.name.slice(0, 24), role: 'perc', sampleId: s.id, steps: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0] });
   addTrack(t);
 }
@@ -159,22 +190,18 @@ async function recreate() {
   let kit = [];
   try {
     buf = await decode(f); dna = await analyzeSong(buf, (m) => busyText(m));
-    kit = await saveSongKit(dna, f.name.replace(/\.[^.]+$/, ''), (p, n) => busyText(`Creando pistas parecidas… ${n} (${Math.round(p * 100)}%)`));
+    ({ kit } = await songToLibrary(f, buf, dna));
   } finally { busy(false); }
-  renderOwn();
-  toast(`💾 ${kit.length} pistas parecidas guardadas en Tus sonidos`, 4000);
   const G = GENRES[dna.genre];
   const cam = CAMELOT[dna.mode][dna.root];
   const id = await sheet(`🧬 ${f.name.replace(/\.[^.]+$/, '')}`, {
-    text: `✅ Guardé ${kit.length} pistas parecidas en Tus sonidos (bombo, caja, hats, bajo, acordes, melodía y beat completo).\n\nTempo: ${dna.bpm} BPM\nTonalidad: ${NOTE_ES[dna.root]} ${dna.mode === 'minor' ? 'menor' : 'mayor'} · Camelot ${cam}\nEstilo parecido: ${G.emoji} ${G.name}\nBatería detectada: ${dna.separated ? 'sí (bombo y caja separados)' : 'aproximada (usé el patrón del estilo)'}`,
+    text: `✅ Guardé la canción y ${kit.length} pistas parecidas en Tus sonidos, en su propia carpeta (bombo, caja, hats, bajo, acordes, melodía y beat completo).\n\nTempo: ${dna.bpm} BPM\nTonalidad: ${NOTE_ES[dna.root]} ${dna.mode === 'minor' ? 'menor' : 'mayor'} · Camelot ${cam}\nEstilo parecido: ${G.emoji} ${G.name}\nBatería detectada: ${dna.separated ? 'sí (bombo y caja separados)' : 'aproximada (usé el patrón del estilo)'}`,
     options: [
       { id: 'same', label: `✨ Proyecto parecido (${G.name})`, primary: true, sub: 'Mismo BPM, tono y groove; instrumentos nuevos' },
       { id: 'techno', label: '⛓️ Versión hard techno', sub: `Su tonalidad y groove, llevado a ${Math.max(145, dna.bpm)} BPM` },
       { id: 'latino', label: '🔥 Versión techno latino (edit)', sub: 'Para meterle voces latinas encima' },
-      { id: 'save', label: '💾 Guardar la canción en Tus sonidos', sub: 'Para tus sets / referencias (uso personal)' },
     ] });
   if (!id) return;
-  if (id === 'save') { await addSample({ name: f.name.replace(/\.[^.]+$/, '').slice(0, 40), blob: f, buffer: buf, bpm: dna.bpm, kind: 'audio' }); renderOwn(); toast('Guardada en Tus sonidos'); return; }
   const genre = id === 'same' ? dna.genre : id === 'techno' ? 'hardtechno' : 'technolatino';
   const bpm = id === 'same' ? dna.bpm : Math.max(GENRES[genre].bpm[0], Math.min(GENRES[genre].bpm[1], dna.bpm < 100 ? dna.bpm * 1.5 : dna.bpm));
   await newFromStyle(genre, { bpm: Math.round(bpm), root: dna.root, mode: dna.mode, drums: id === 'same' ? dna.drums : null, name: `Mi versión · ${f.name.replace(/\.[^.]+$/, '').slice(0, 24)}`, dj: TECHNO.has(genre) });

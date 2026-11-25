@@ -323,3 +323,9 @@ textarea.lyrics { min-height: 30vh; resize: vertical; font-size: 17px; line-heig
 .reccard .bigrec { width: 72px; height: 72px; border-radius: 50%; background: var(--grad); font-size: 26px; box-shadow: 0 6px 24px -6px var(--red2); }
 .reccard .bigrec.on { animation: pulse 1.2s infinite; background: #ff1f3d; }
 .reccard .rt { font: 800 28px ui-monospace, Menlo, monospace; }
+/* sets guardados de una canción */
+.kitset { margin-top: 8px; border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; background: rgba(255,45,75,.06); }
+.kitset > summary { cursor: pointer; list-style: none; padding: 4px 0; }
+.kitset > summary::-webkit-details-marker { display: none; }
+.kitset > summary::before { content: '▸ '; color: var(--red, #ff2d4b); }
+.kitset[open] > summary::before { content: '▾ '; }

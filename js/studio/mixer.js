@@ -26,9 +26,12 @@ export class Mixer {
     comp.threshold.value = -10; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.12; comp.knee.value = 6;
     this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 1024;
     const clip = ctx.createWaveShaper(); const cc = new Float32Array(2048);
-    for (let i = 0; i < cc.length; i++) { const x = (i / (cc.length - 1)) * 2 - 1; cc[i] = Math.abs(x) < 0.7 ? x : Math.sign(x) * (0.7 + 0.28 * Math.tanh((Math.abs(x) - 0.7) / 0.28)); }
-    clip.curve = cc;
-    master.connect(this.masterHP).connect(this.masterLP).connect(comp).connect(clip).connect(this.analyser).connect(ctx.destination);
+    for (let i = 0; i < cc.length; i++) { const x = (i / (cc.length - 1)) * 2 - 1; cc[i] = Math.abs(x) < 0.85 ? x : Math.sign(x) * (0.85 + 0.13 * Math.tanh((Math.abs(x) - 0.85) / 0.13)); }
+    clip.curve = cc; clip.oversample = '2x';
+    // limitador: evita que la suma de pistas llegue al recorte (eso era lo que "saturaba")
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -4; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.06; lim.knee.value = 0;
+    master.connect(this.masterHP).connect(this.masterLP).connect(comp).connect(lim).connect(clip).connect(this.analyser).connect(ctx.destination);
     // grabadora: si está grabando "lo que suena", también enviar ahí
     if (Mixer.tap && Mixer.tap.context === ctx) this.analyser.connect(Mixer.tap);
     this.master = master;

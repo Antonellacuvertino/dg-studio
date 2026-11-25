@@ -8,7 +8,7 @@ import { db } from '../core/db.js';
 import { audio } from '../core/audio.js';
 import { uid } from '../core/ui.js';
 import { makeReverb } from '../engine/synth.js';
-import { sampleBuffer } from '../studio/samples.js';
+import { sampleBuffer, sampleGain } from '../studio/samples.js';
 
 const COLORS = ['#ff2d4b', '#ffc23d', '#3ee08f', '#4dabff', '#c77dff', '#ff7a1a', '#e0aa55', '#2ed1e6'];
 export const newMulti = (name = 'Mi mezcla') => ({ id: uid(), name, bpm: 120, created: Date.now(), updated: Date.now(), tracks: [] });
@@ -34,7 +34,8 @@ function build(ctx, p, bufs, from, t0) {
   const master = ctx.createGain(); master.gain.value = 0.9;
   const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -8; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.15;
   const an = ctx.createAnalyser(); an.fftSize = 512;
-  master.connect(comp).connect(an).connect(ctx.destination);
+  const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.06; lim.knee.value = 0;
+  master.connect(comp).connect(lim).connect(an).connect(ctx.destination);
   const rev = makeReverb(ctx, 0.5); rev.out.connect(master);
   const anySolo = p.tracks.some((t) => t.solo);
   const sources = []; const lanes = new Map();
@@ -50,11 +51,11 @@ function build(ctx, p, bufs, from, t0) {
       const skip = Math.max(0, from - c.start);
       const when = t0 + Math.max(0, c.start - from);
       const s = ctx.createBufferSource(); s.buffer = b;
-      const cg = ctx.createGain(); const dur = c.dur - skip;
+      const cg = ctx.createGain(); const dur = c.dur - skip; const cgain = c.gain * sampleGain(b);
       const fi = Math.min(c.fadeIn || 0, c.dur / 2), fo = Math.min(c.fadeOut || 0, c.dur / 2);
-      cg.gain.setValueAtTime(skip < fi ? 0.0001 : c.gain, when);
-      if (skip < fi) cg.gain.linearRampToValueAtTime(c.gain, when + (fi - skip));
-      cg.gain.setValueAtTime(c.gain, Math.max(when, when + dur - fo));
+      cg.gain.setValueAtTime(skip < fi ? 0.0001 : cgain, when);
+      if (skip < fi) cg.gain.linearRampToValueAtTime(cgain, when + (fi - skip));
+      cg.gain.setValueAtTime(cgain, Math.max(when, when + dur - fo));
       cg.gain.linearRampToValueAtTime(0.0001, when + dur);
       s.connect(cg).connect(g);
       s.start(when, c.offset + skip, dur); sources.push(s);
