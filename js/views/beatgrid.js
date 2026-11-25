@@ -3,6 +3,9 @@
 //  Una fila por instrumento, 16 casillas por compás, recetas por
 //  estilo y una biblioteca para elegir el sonido de cada fila.
 // ===============================================================
+import { canDownload, downloadStatus, quotaOn, MAX_DL } from '../core/quota.js';
+// beta: cuántas descargas quedan (se rellena al cargar)
+function dlLeft() { const el = h('div.muted.small.dlleft', { style: { margin: '6px 2px 0' } }); downloadStatus().then((d) => { el.textContent = d.left ? `🔒 Beta: te quedan ${d.left} de ${MAX_DL} descargas` : `⏳ Beta: descargas bloqueadas hasta ${new Date(d.until).toLocaleString('es', { weekday: 'long', hour: '2-digit', minute: '2-digit' })}`; }); return el; }
 import { h, put, toast, busy, busyText, action, sheet, confirm, prompt, slider } from '../core/ui.js';
 import { audio, stopPreview, playPreview, shareOrSave, safeName } from '../core/audio.js';
 import { state } from '../core/state.js';
@@ -77,6 +80,7 @@ export function renderGrid(root, P, { save, rerender, openMenu, goAdvanced }) {
     h('div.grid2', {},
       h('button.btn', { onclick: action(() => exportBeat(P, 'mp3', save, rerender)) }, '⬇️ MP3'),
       h('button.btn', { onclick: action(() => exportBeat(P, 'wav', save, rerender)) }, '💿 WAV (DJ)')),
+    quotaOn() ? dlLeft() : null,
     h('button.btn.block', { style: { marginTop: '8px' }, onclick: action(() => sendBeat(P)) }, '📤 Enviar a Multipista (para sumar voces y audios)'),
     recorderCard(),
     h('p.muted.small', { style: { marginTop: '10px' } }, 'Para armar el tema completo (intro, subida, drop…), mezclar y usar el piano roll, entra en ⚙️ Avanzado: tus filas son las mismas pistas.'),
@@ -231,6 +235,7 @@ async function auditionSynth(t, P) {
 
 async function exportBeat(P, kind, save, rerender) {
   transport.stop();
+  if (!(await canDownload())) return;
   if (!P.named) { if (!(await nameSong(P, save, '¿Cómo se llama tu canción?'))) return; rerender && rerender(); }
   const len = await sheet('¿Qué exporto?', { options: [
     { id: 'loop', label: '🔁 El loop (8 compases)', sub: 'Para practicar o rapear encima' },
@@ -248,6 +253,7 @@ async function exportBeat(P, kind, save, rerender) {
     else blob = toWav(buf);
     busy(false);
     await shareOrSave(blob, `${safeName(state.artist)} - ${safeName(P.name)} (${P.bpm} BPM ${CAMELOT[P.mode][P.root]})${len === 'loop' ? ' loop' : ''}.${kind}`);
+    if (quotaOn() && rerender) rerender();
   } catch (e) { busy(false); throw e; }
   void projectSeconds;
 }

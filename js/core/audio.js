@@ -113,11 +113,13 @@ export function saveBlob(blob, name) {
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 export async function shareOrSave(blob, name) {
+  const { canDownload, countDownload } = await import('./quota.js');
+  if (!(await canDownload())) return false;
   const file = new File([blob], name, { type: blob.type || 'application/octet-stream' });
   if (/iPhone|iPad|Android/i.test(navigator.userAgent) && navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: name }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.share({ files: [file], title: name }); await countDownload(); return true; } catch (e) { if (e && e.name === 'AbortError') return false; }
   }
-  saveBlob(blob, name);
+  saveBlob(blob, name); await countDownload(); return true;
 }
 export const safeName = (s) => String(s || 'cancion').replace(/[\\/:*?"<>|]/g, '').trim() || 'cancion';
 

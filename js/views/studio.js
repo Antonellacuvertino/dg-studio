@@ -3,6 +3,8 @@
 // ===============================================================
 import { $, h, toast, busy, busyText, action, sheet, confirm, prompt, slider, chips, uid, clamp } from '../core/ui.js';
 import { put } from '../core/ui.js';
+import { canDownload, downloadStatus, quotaOn, MAX_DL } from '../core/quota.js';
+const betaNote = async () => { if (!quotaOn()) return ''; const d = await downloadStatus(); return d.left ? `Beta: te quedan ${d.left} de ${MAX_DL} descargas` : 'Beta: descargas bloqueadas por 24 h'; };
 import { db } from '../core/db.js';
 import { state, emit, on } from '../core/state.js';
 import { audio, decode, pickFile, playPreview, stopPreview, shareOrSave, safeName, startRecorder } from '../core/audio.js';
@@ -432,10 +434,11 @@ export function addTrack(t, { allScenes = true } = {}) {
 //  Menú del proyecto
 // ---------------------------------------------------------------
 async function menu() {
+  const dlNote = await betaNote();
   const id = await sheet(P.name, { options: [
     { id: 'new', label: '✨ Nuevo desde un estilo', sub: 'Plantilla con kit, bajo, melodía y estructura DJ' },
     { id: 'open', label: '📂 Mis proyectos', sub: 'Abrir, duplicar o borrar' },
-    { id: 'mp3', label: '⬇️ Exportar tema en MP3', primary: true, sub: 'Con tu nombre y licencia en las etiquetas' },
+    { id: 'mp3', label: '⬇️ Exportar tema en MP3', primary: true, sub: dlNote || 'Con tu nombre y licencia en las etiquetas' },
     { id: 'wav', label: '💿 Exportar WAV (calidad DJ)', sub: 'Sin compresión, para tu USB o Rekordbox' },
     { id: 'loop', label: '🔁 Exportar escena actual como loop', sub: 'WAV de la escena seleccionada' },
     { id: 'multi', label: '📤 Enviar el tema a Multipista', sub: 'Para sumarle voces y otros audios' },
@@ -498,6 +501,7 @@ function tagsFor(buf) {
 }
 async function exportSong(kind) {
   transport.stop();
+  if (!(await canDownload())) return;
   if (!P.named && !(await nameSong(P, saveSoon, '¿Cómo se llama tu canción?'))) return;
   render();
   busy('Mezclando el tema…');
@@ -512,6 +516,7 @@ async function exportSong(kind) {
   } catch (e) { busy(false); throw e; }
 }
 async function exportScene() {
+  if (!(await canDownload())) return;
   transport.stop(); const sc = P.scenes[ui.scene];
   busy('Exportando loop…');
   try {
