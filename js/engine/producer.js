@@ -80,7 +80,8 @@ export function produce(p) {
   else if (V && V.keyConf > 0.3) { root = V.root; mode = V.mode; why.push('tonalidad sacada de tu voz'); }
   else {
     mode = (L && L.mood) || G.mode;
-    root = (L ? hash(L.lines.map((l) => l.text).join()) + seed : seed) % 12;
+    root = G.root ?? (L ? hash(L.lines.map((l) => l.text).join()) + seed : seed) % 12;
+    if (G.root != null) { mode = G.mode; why.push(`${G.name} en ${['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si'][G.root]} ${mode === 'minor' ? 'menor' : 'mayor'}, como en tu playlist`); }
   }
   if (!G.progs[mode]) mode = G.mode;
   const prog = pick(r, G.progs[mode]);

@@ -113,7 +113,7 @@ export function makeProject(genreKey, o = {}) {
   const r = rng(o.seed || (Math.random() * 1e9) | 0);
   const bpm = o.bpm || Math.round((G.bpm[0] + G.bpm[1]) / 2);
   const p = emptyProject(o.name || `${G.name} ${bpm}`);
-  Object.assign(p, { bpm, genre: genreKey, root: o.root ?? (r() * 12) | 0, mode: o.mode || G.mode, swing: G.swing || 0, scenes: [] });
+  Object.assign(p, { bpm, genre: genreKey, root: o.root ?? G.root ?? (r() * 12) | 0, mode: o.mode || G.mode, swing: G.swing || 0, scenes: [] });
   const prog = o.prog || pick(r, G.progs[p.mode] || G.progs[G.mode]);
   const chordBars = G.chordBars || 1;
   const degAt = (bar) => prog[Math.floor(bar / chordBars) % prog.length];
@@ -126,12 +126,12 @@ export function makeProject(genreKey, o = {}) {
   const kickSound = G.hardKick ? 'hardkick' : 'kick';
   T.push(newTrack('drum', { name: G.hardKick ? 'Bombo duro' : 'Bombo', role: 'kick', sound: kickSound, steps: dr ? dr.kick.slice() : fromPat(pick(r, G.kick), 16), vol: 0.95 }));
   const sn = G.snareType === 'clap' ? 'clap' : G.snareType === 'rim' ? 'rim' : 'snare';
-  T.push(newTrack('drum', { name: DRUMS[sn][0], role: 'snare', sound: sn, steps: dr ? dr.snare.slice() : fromPat(pick(r, G.snare), 16), vol: 0.75, fx: { reverb: 0.2 } }));
-  T.push(newTrack('drum', { name: G.openHats ? 'Hat abierto' : 'Hi-hat', role: 'hat', sound: G.openHats ? 'hatOpen' : 'hat', steps: dr ? dr.hat.slice() : fromPat(pick(r, G.hat), 16), vol: 0.6, pan: 0.15 }));
-  if (TECHNO.has(genreKey)) T.push(newTrack('drum', { name: 'Hat rodante', role: 'hat', sound: 'hat', steps: genDrum('hat', r() * 1e9, 16), vol: 0.45, pan: -0.2 }));
+  T.push(newTrack('drum', { name: DRUMS[sn][0], role: 'snare', sound: sn, steps: dr ? dr.snare.slice() : fromPat(pick(r, G.snare), 16), vol: G.snareVol ?? 0.75, fx: { reverb: 0.2 } }));
+  T.push(newTrack('drum', { name: G.openHats ? 'Hat abierto' : 'Hi-hat', role: 'hat', sound: G.openHats ? 'hatOpen' : 'hat', steps: dr ? dr.hat.slice() : fromPat(pick(r, G.hat), 16), vol: G.hatVol ?? 0.6, pan: 0.15 }));
+  if (TECHNO.has(genreKey) && !G.noRollHat) T.push(newTrack('drum', { name: 'Hat rodante', role: 'hat', sound: 'hat', steps: genDrum('hat', r() * 1e9, 16), vol: 0.45, pan: -0.2 }));
   (G.perc || []).forEach((pc, i) => {
     const snd = pc.type === 'conga' ? (i % 2 ? 'congaLo' : 'congaHi') : pc.type;
-    T.push(newTrack('drum', { name: DRUMS[snd][0], role: 'perc', sound: snd, steps: fromPat(pc.pat, 16), vol: 0.55, pan: i % 2 ? 0.3 : -0.3, fx: { reverb: 0.15 } }));
+    T.push(newTrack('drum', { name: DRUMS[snd][0], role: 'perc', sound: snd, steps: fromPat(pc.pat, 16), vol: pc.vol ?? 0.55, pan: i % 2 ? 0.3 : -0.3, fx: { reverb: 0.15 } }));
   });
   if (genreKey === 'industrial') T.push(newTrack('drum', { name: 'Metálico', role: 'perc', sound: 'metal', steps: genDrum('metal', r() * 1e9, 16), vol: 0.5, fx: { delay: 0.25 } }));
 

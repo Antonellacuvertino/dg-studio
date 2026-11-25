@@ -56,7 +56,7 @@ const KIT = {
   hardtechno: 'bombo duro distorsionado, rumble rodante entre bombos, palmas, hats rápidos y percusión metálica',
   technolatino: 'bombo 4x4 duro + el dembow en el aro y las congas, rumble y stabs; deja espacio para la voz',
   acidtechno: 'bombo 4x4, palmas y una línea acid 303 con resonancia alta',
-  guaracha: 'bombo 4x4, palmas en 2 y 4, toms y congas tribales sin parar, hat abierto en el contratiempo, shaker y silbato',
+  guaracha: 'guaracha colombiana a 130 BPM en La menor: bombo 4x4 con palmas en los 4 tiempos, bajo y hat abierto en el contratiempo, toms de zapateo, shaker, saxo y silbato',
   hardgroove: 'bombo seco, congas y bongós tribales, shaker y hats en groove',
   rave: 'ritmo quebrado (breakbeat), caja rave, bajo reese y un hoover en el drop',
   house: 'bombo 4x4, palmas, hats abiertos en el contratiempo y un bajo saltarín',
@@ -134,7 +134,7 @@ export function soundAdvice(s, target) {
   const tg = target && GENRES[target] ? target : null; const G = tg ? GENRES[tg] : null;
   const use = {
     kick: 'Úsalo como capa del bombo (suena "x...x...x...x...") o como tom grave en los contratiempos.',
-    perc: `Úsalo como percusión: ${tg === 'guaracha' ? 'en la guaracha va perfecto como tom tribal "x.xx..x.x.xx..x."' : 'ponlo en las casillas entre bombos para darle groove'}.`,
+    perc: `Úsalo como percusión: ${tg === 'guaracha' ? 'en la guaracha va perfecto como tom de zapateo ".x...xx..x.x.x.." (entre los bombos, sin pisar los tiempos)' : 'ponlo en las casillas entre bombos para darle groove'}.`,
     hat: 'Úsalo como hi-hat o shaker: en el contratiempo ("..x...x...x...x.") o en 16avos suaves.',
     snare: 'Úsalo como palmada/caja en el 2 y el 4 ("....x.......x...") o en los redobles de la subida.',
     fx: 'Úsalo como efecto: al inicio de cada drop, en la intro o en el break (una vez cada 4 compases).',

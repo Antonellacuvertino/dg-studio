@@ -1,5 +1,5 @@
 ﻿// Service worker: primero red; si no hay conexiÃ³n, usa la copia guardada.
-const CACHE = 'dg-studio-v11';
+const CACHE = 'dg-studio-v12';
 const SHELL = ['./', 'index.html', 'css/app.css', 'manifest.json', 'DG_Voz_IA.ipynb',
   'js/app.js', 'js/core/ui.js', 'js/core/db.js', 'js/core/audio.js', 'js/core/state.js',
   'js/engine/engine.js', 'js/engine/synth.js', 'js/engine/analyze.js', 'js/engine/producer.js', 'js/engine/export.js',

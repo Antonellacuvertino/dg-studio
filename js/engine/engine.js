@@ -191,11 +191,13 @@ export const GENRES = {
     bass: { type: 'reese', pat: 'R-------R---R---' }, chords: { type: 'hoover', pat: 'x-------x-------' }, lead: 'supersaw',
     progs: { minor: [[0, 5, 6, 4], [0, 6, 5, 6]], major: [[0, 4, 5, 3]] },
   },
+  // Guaracha colombiana / aleteo (playlist "guarachasexo": 23 temas, todos a 130 BPM, casi todos en La menor)
+  // promedio de los 23: palmas y percusión en LOS 4 TIEMPOS junto al bombo, bajo y hat en el contratiempo
   guaracha: {
-    name: 'Guaracha', emoji: '🦜', bpm: [128, 136], mode: 'minor', swing: 0, spb: 9, chordBars: 2, duck: true, openHats: true, riser: true,
-    kick: ['x...x...x...x...'], snare: ['....x.......x...'], snareType: 'clap',
-    hat: ['..x...x...x...x.'], perc: [{ type: 'conga', pat: 'x.xx..x.x.xx..x.', core: true }, { type: 'shaker', pat: 'xgxgxgxgxgxgxgxg', core: true }],
-    bass: { type: 'synth', pat: '..R...R...R..RR.' }, chords: { type: 'stab', pat: 'x..x..x.....x...', chorusType: 'lead', chorusPat: 'x.x.x...x.x.x...' }, lead: 'lead',
+    name: 'Guaracha', emoji: '🦜', bpm: [129, 131], mode: 'minor', root: 9, swing: 0, spb: 9, chordBars: 2, duck: true, openHats: true, riser: true, snareVol: 1, hatVol: 0.15, noRollHat: true,
+    kick: ['x...x...x...x...'], snare: ['x...x...x...x...', 'x...x...x...x..x'], snareType: 'clap',
+    hat: ['..x...x...x...x.'], perc: [{ type: 'conga', pat: '.x...xx..x.x.x..', core: true, vol: 0.4 }, { type: 'shaker', pat: 'gxgxgxgxgxgxgxgx', core: true, vol: 0.22 }],
+    bass: { type: 'synth', pat: '..R...R...R...R.' }, chords: { type: 'stab', pat: 'x.......x.......', chorusType: 'lead', chorusPat: '..x.x...x.x.....' }, lead: 'lead',
     progs: { minor: [[0, 5, 6, 4], [0, 0, 5, 6], [0, 6, 5, 6]], major: [[0, 4, 5, 3]] },
   },
   // --- estilos de la playlist de differentgyal (54 temas analizados, casi todos 140-170 BPM) ---

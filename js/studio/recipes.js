@@ -5,10 +5,10 @@
 //  Bajos/sintes: los números son notas de la escala (0 = nota base).
 // ===============================================================
 export const RECIPES = [
-  { id: 'guaracha', name: 'Guaracha', bpm: 132, color: '#ffb020', genre: 'guaracha',
-    tip: 'Guaracha / aleteo: bombo 4x4, palmas en 2 y 4, toms y congas tribales que no paran, hat abierto en el contratiempo y el silbato de carnaval. Ideal para meter sonidos de la calle como percusión.',
-    rows: [['Bombo', 'lib:808-kick-punch', 'x...x...x...x...'], ['Palmas', 'lib:808-clap', '....x.......x...'], ['Hat abierto', 'lib:808-openhat', '..x...x...x...x.'], ['Tom tribal', 'lib:808-tom-mid', 'x.xx..x.x.xx..x.'], ['Conga', 'lib:808-conga-hi', '..x..x...x..x.x.'], ['Shaker', 'lib:ac-shaker', 'xoxoxoxoxoxoxoxo'], ['Silbato', 'whistle', '..............x.']],
-    synths: [['Bajo', 'bass', '..0...0...0..00.', 0.6]] },
+  { id: 'guaracha', name: 'Guaracha', bpm: 130, color: '#ffb020', genre: 'guaracha',
+    tip: 'Guaracha colombiana / aleteo (sacada de tu playlist: 23 temas, todos a 130 BPM, casi todos en La menor). Las palmas van en LOS 4 TIEMPOS junto al bombo; el bajo y el hat abierto van en el contratiempo. Encima: saxo, coros y sonidos de la calle.',
+    rows: [['Bombo', 'lib:808-kick-punch', 'x...x...x...x...'], ['Palmas', 'lib:808-clap', 'o...x...o...x...'], ['Hat abierto', 'lib:808-openhat', '..x...x...x...x.'], ['Tom zapateo', 'lib:808-tom-mid', '.o...xo..o.o.o..'], ['Conga', 'lib:808-conga-hi', '.....x.x.....x..'], ['Shaker', 'lib:ac-shaker', 'oxoxoxoxoxoxoxox'], ['Silbato', 'whistle', '..............x.']],
+    synths: [['Bajo', 'bass', '..0...0...0...0.', 0.6]] },
   { id: 'perreorave', name: 'Perreo Rave', bpm: 155, color: '#ff4fa3', genre: 'perreorave',
     tip: 'Lo que más se repite en tu playlist (Noro$t, PETERBLUE): bombo duro 4x4 a 155 y encima el dembow 3-3-2 en el aro, las congas y el sub. El sub sigue al dembow, no al bombo.',
     rows: [['Bombo', 'hardkick', 'x...x...x...x...'], ['Aro dembow', 'lib:808-rim', '...x..x....x..x.'], ['Conga', 'lib:808-conga-hi', 'x..x..x.x..x..x.'], ['Hat', 'lib:808-hat', 'x.x.x.x.x.x.x.x.'], ['Hat abierto', 'lib:808-openhat', '..x...x...x...x.'], ['Shaker', 'lib:ac-shaker', 'oxoxoxoxoxoxoxox']],
