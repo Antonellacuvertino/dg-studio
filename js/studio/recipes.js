@@ -5,6 +5,10 @@
 //  Bajos/sintes: los números son notas de la escala (0 = nota base).
 // ===============================================================
 export const RECIPES = [
+  { id: 'guaracha', name: 'Guaracha', bpm: 132, color: '#ffb020', genre: 'guaracha',
+    tip: 'Guaracha / aleteo: bombo 4x4, palmas en 2 y 4, toms y congas tribales que no paran, hat abierto en el contratiempo y el silbato de carnaval. Ideal para meter sonidos de la calle como percusión.',
+    rows: [['Bombo', 'lib:808-kick-punch', 'x...x...x...x...'], ['Palmas', 'lib:808-clap', '....x.......x...'], ['Hat abierto', 'lib:808-openhat', '..x...x...x...x.'], ['Tom tribal', 'lib:808-tom-mid', 'x.xx..x.x.xx..x.'], ['Conga', 'lib:808-conga-hi', '..x..x...x..x.x.'], ['Shaker', 'lib:ac-shaker', 'xoxoxoxoxoxoxoxo'], ['Silbato', 'whistle', '..............x.']],
+    synths: [['Bajo', 'bass', '..0...0...0..00.', 0.6]] },
   { id: 'hardtechno', name: 'Hard Techno', bpm: 152, color: '#ff2d4b', genre: 'hardtechno',
     tip: 'Bombo distorsionado en los 4 tiempos y rumble en los contratiempos: el bajo "rueda" entre bombo y bombo. Sidechain fuerte.',
     rows: [['Bombo', 'hardkick', 'x...x...x...x...'], ['Palmas', 'lib:808-clap', '....x.......x...'], ['Hat abierto', 'lib:808-openhat', '..x...x...x...x.'], ['Hat', 'lib:808-hat', 'xoxoxoxoxoxoxoxo'], ['Metal', 'lib:ac-brake', '...x......x..x..']],

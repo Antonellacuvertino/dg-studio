@@ -10,6 +10,15 @@ import { GENRES, NOTE_ES } from '../engine/engine.js';
 import { LOOPS } from '../studio/loops.js';
 import { newScene, TECHNO, keyLabel } from '../studio/model.js';
 import { currentProject, newFromStyle, addTrack, saveSoon } from './studio.js';
+import { busy, busyText, fmt } from '../core/ui.js';
+import { pickFile, decode } from '../core/audio.js';
+import { addSample } from '../studio/samples.js';
+import { saveSongKit } from '../studio/songkit.js';
+import { newTrack } from '../studio/model.js';
+import { stepsFrom } from '../studio/recipes.js';
+import { styleIn, detectSongRequest, remakePlan, analyzeSound, soundAdvice, analyzeSong, analyzeSounds } from '../assistant/brain.js';
+import { searchSong, trackInfo, analyzePreview } from '../assistant/songinfo.js';
+let lastStyle = null;
 
 let root = null; let chatEl = null;
 const history = []; // {role:'user'|'assistant', content}
@@ -19,7 +28,9 @@ const SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.6.0/+esm';
 export async function initAssistant(el) {
   root = el; claudeKey = await db.kvGet('claudeKey', null);
   render();
-  bot(`¡Hola ${state.artist}! 🐆 Soy tu asistente de producción. Cuéntame qué quieres lograr y te llevo paso a paso.\n\nPor ejemplo: "quiero hacer un hard techno oscuro a 150 para tocar en mi set" o "quiero que mi letra suene con autotune".`, [
+  bot(`¡Hola ${state.artist}! 🐆 Soy tu asistente de producción. Cuéntame qué quieres lograr y te llevo paso a paso.\n\n• Dime una canción ("quiero transformar Tren al sur de Los Prisioneros a techno") y la busco, la analizo y te armo el plan.\n• Mándame un audio con 📎 (una canción o un sonido que grabaste en la calle) y te digo cómo usarlo.`, [
+    { label: '🚆 Tren al sur → techno', run: () => send('quiero transformar la canción tren al sur de los prisioneros a techno') },
+    { label: '📎 Enviar un audio', run: () => attach() },
     { label: '⛓️ Hard techno para DJ', run: () => send('quiero hacer un hard techno para dj') },
     { label: '🔥 Techno latino con voz', run: () => send('quiero un techno latino con mi voz') },
     { label: '🎤 Mi voz con autotune', run: () => send('cómo pongo autotune a mi voz') },
@@ -38,7 +49,7 @@ function render() {
       h('div.grow', {}, h('b', {}, 'Asistente DG'), h('div.muted.small', {}, claudeKey ? 'Modo Claude (IA) · conectado' : 'Modo guía local · gratis')),
       h('button.btn.sm', { onclick: action(settings) }, '⚙️')),
     chatEl,
-    h('div.chatbar', {}, ta, h('button.btn.primary', { onclick: go }, '➤')));
+    h('div.chatbar', {}, h('button.btn.icon', { title: 'Enviar un audio', onclick: () => attach() }, '📎'), ta, h('button.btn.primary', { onclick: go }, '➤')));
   history.forEach((m) => draw(m));
 }
 
@@ -53,6 +64,14 @@ function me(content) { const m = { role: 'user', content }; history.push(m); if 
 
 async function send(text) {
   me(text);
+  const st = styleIn(text); if (st) lastStyle = st;
+  const req = detectSongRequest(text);
+  if (req) { await songFlow(req); return; }
+  const n = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (/(sonido|audio|ritmo|grabacion|cancion)/.test(n) && /(envi|mand|sub|te paso|adjunt|analiz)/.test(n)) {
+    bot(`¡Mándamelo! Toca 📎 y elige el archivo${lastStyle ? `. Lo analizo pensando en tu ${GENRES[lastStyle].name}` : ''}: si es una canción saco su BPM, tono y estilo; si es un sonido te digo dónde ponerlo.`, [{ label: '📎 Enviar audio', run: () => attach() }]);
+    return;
+  }
   if (claudeKey) { try { await askClaude(text); return; } catch (e) { console.error(e); bot(`No pude hablar con Claude (${e.message}). Te respondo en modo local:`); } }
   local(text);
 }
@@ -88,6 +107,7 @@ const ACTIONS = {
 // ---------------------------------------------------------------
 const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const GENRE_WORDS = [
+  ['guaracha', /guaracha|aleteo|zapateo/],
   ['hardtechno', /hard ?techno|hard ?tecno|techno duro|tecno duro|schranz|hardtechno/],
   ['technolatino', /latino|edit|perreo|neoperreo|rkt|guaracha|techno con (reggaeton|dembow)/],
   ['acidtechno', /acid|acido|303/], ['melodictechno', /melodic|melodico/], ['industrial', /industrial/],
@@ -220,3 +240,76 @@ async function settings() {
 }
 
 on('project', () => { /* el contexto del proyecto se lee en cada mensaje */ });
+
+
+// ---------------------------------------------------------------
+//  Canciones por nombre y audios enviados
+// ---------------------------------------------------------------
+function thinking(t) { const el = h('div.msg.bot', {}, t); chatEl.append(el); el.scrollIntoView({ block: 'end' }); return el; }
+const createAct = (plan, root, mode, name) => {
+  const G = GENRES[plan.target];
+  return { label: `✨ Crear proyecto ${G.name} ${plan.bpm} BPM`, run: async () => {
+    const p = await newFromStyle(plan.target, { bpm: plan.bpm, root: root ?? undefined, mode: mode || undefined, name, dj: TECHNO.has(plan.target) });
+    p.guide = TECHNO.has(plan.target); saveSoon(); emit('goto', 'studio');
+  } };
+};
+
+async function songFlow(req, chosen = null) {
+  const w = thinking(`🔍 Buscando "${req.title}"${req.artist ? ' de ' + req.artist : ''}…`);
+  let results = [];
+  try { results = chosen ? [chosen] : await searchSong(req.query); } catch (e) { w.remove(); bot(`No pude buscar en internet (${e.message}). Si tienes la canción, mándamela con 📎 y la analizo igual.`, [{ label: '📎 Enviar la canción', run: () => attach() }]); return; }
+  if (!results.length) { w.remove(); bot(`No encontré "${req.title}". ¿Me la mandas con 📎? Así saco su tempo, tono y batería.`, [{ label: '📎 Enviar la canción', run: () => attach() }]); return; }
+  const r = results[0];
+  let info = r; try { info = { ...r, ...(await trackInfo(r.id)) }; } catch { /* seguimos con lo básico */ }
+  w.textContent = `🎧 Escuchando un fragmento de "${info.title}"…`;
+  let dna = null; try { dna = info.preview ? await analyzePreview(info.preview) : null; } catch { dna = null; }
+  w.remove();
+  const bpm = info.bpm || (dna && dna.bpm) || null;
+  const plan = remakePlan({ title: info.title, artist: info.artist, bpm, root: dna ? dna.root : null, mode: dna ? dna.mode : null, genre: dna ? dna.genre : null }, req.target || lastStyle);
+  const head = `🎵 ${info.title} — ${info.artist}\n💿 ${info.album || ''}${info.year ? ' (' + info.year + ')' : ''}${info.duration ? ' · ' + fmt(info.duration) : ''}${bpm ? ' · ' + bpm + ' BPM' : ''}${dna ? ' · ' + NOTE_ES[dna.root] + (dna.mode === 'minor' ? ' menor' : ' mayor') : ''}\n\n`;
+  const acts = [createAct(plan, dna && dna.root, dna && dna.mode, `${info.title} (${GENRES[plan.target].name} edit)`)];
+  if (dna) acts.push({ label: '💾 Guardar pistas parecidas', run: async () => { busy('Creando pistas parecidas…'); try { const k = await saveSongKit(dna, info.title, (p, n) => busyText(`Creando pistas parecidas… ${n}`)); toast(`💾 ${k.length} pistas en Tus sonidos`); } finally { busy(false); } } });
+  acts.push({ label: '🎤 Grabar el gancho', run: () => emit('goto', 'voice') });
+  if (results.length > 1 && !chosen) acts.push({ label: '🔄 Era otra versión', run: () => bot('¿Cuál de estas es?', results.slice(1, 5).map((x) => ({ label: `${x.title} — ${x.artist}${x.duration ? ' (' + fmt(x.duration) + ')' : ''}`, run: () => songFlow(req, x) }))) });
+  acts.push({ label: '📎 Mandarte la completa', run: () => attach() });
+  bot(head + plan.text + (dna ? '' : '\n\n(No pude escuchar el fragmento; si me mandas la canción saco su tono exacto.)'), acts);
+}
+
+async function attach() {
+  const f = await pickFile(); if (!f) return;
+  me(`📎 ${f.name}`);
+  const target = lastStyle;
+  let buf;
+  busy('Escuchando tu audio…');
+  try { buf = await decode(f); } catch { busy(false); bot('No pude abrir ese archivo de audio. Prueba con MP3, M4A o WAV.'); return; }
+  const name = f.name.replace(/\.[^.]+$/, '').slice(0, 40);
+  try {
+    if (buf.duration >= 6) {
+      const dna = await analyzeSong(buf, (m) => busyText(m));
+      busyText('Guardando pistas parecidas…');
+      const kit = await saveSongKit(dna, name, (p, n) => busyText(`Guardando pistas parecidas… ${n}`));
+      busy(false);
+      const plan = remakePlan({ title: name, artist: '', bpm: dna.bpm, root: dna.root, mode: dna.mode, genre: dna.genre }, target);
+      bot(`🎵 Analicé "${name}": ${dna.bpm} BPM · ${NOTE_ES[dna.root]} ${dna.mode === 'minor' ? 'menor' : 'mayor'} · suena a ${GENRES[dna.genre].name}.\n💾 Guardé ${kit.length} pistas parecidas en Tus sonidos.\n\n` + plan.text,
+        [createAct(plan, dna.root, dna.mode, `${name} (${GENRES[plan.target].name})`), { label: '🔁 Ver mis sonidos', run: () => emit('goto', 'loops') }]);
+      return;
+    }
+    busyText('Analizando el sonido…');
+    const s = await analyzeSound(buf);
+    const rec = await addSample({ name, blob: f, buffer: buf, kind: s.role === 'rhythm' ? 'audio' : 'oneshot' });
+    busy(false);
+    const adv = soundAdvice(s, target);
+    const tg = target || 'guaracha'; const G = GENRES[tg];
+    const row = () => newTrack('drum', { name: name.slice(0, 18), role: s.role === 'hat' ? 'hat' : 'perc', sampleId: rec.id, steps: stepsFrom(adv.pattern), vol: 0.75 });
+    const acts = [
+      { label: `✨ Crear ${G.name} con este sonido`, run: async () => { const p = await newFromStyle(tg, { dj: TECHNO.has(tg), name: `${G.name} con ${name}`.slice(0, 40) }); const t = row(); p.tracks.push(t); p.scenes.forEach((sc) => { if (sc.fx !== 'fadein') sc.on[t.id] = true; }); p.guide = TECHNO.has(tg); saveSoon(); emit('project', p); emit('goto', 'studio'); toast(`${G.emoji} ${G.name} lista con tu sonido`); } },
+      { label: '＋ Agregar a mi beat actual', run: () => { if (!currentProject()) { toast('Abre un proyecto en el Estudio'); return; } addTrack(row()); emit('goto', 'studio'); } },
+    ];
+    if (s.role === 'rhythm') acts.unshift({ label: '🥁 Convertir en batería', run: async () => {
+      busy('Separando tus golpes…'); let snd; try { snd = await analyzeSounds(buf); } finally { busy(false); }
+      const p = await newFromStyle(tg, { bpm: Math.round(Math.max(G.bpm[0], Math.min(G.bpm[1], snd.bpm))), drums: snd.drums, dj: TECHNO.has(tg), name: `Mi ritmo ${G.name}` });
+      p.guide = TECHNO.has(tg); saveSoon(); emit('goto', 'studio'); toast(`🥁 ${snd.hits} golpes convertidos en batería`);
+    } });
+    bot(adv.text, acts);
+  } catch (e) { busy(false); console.error(e); bot('Algo falló analizando el audio: ' + e.message); }
+}

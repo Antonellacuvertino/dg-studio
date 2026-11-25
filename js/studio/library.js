@@ -16,7 +16,7 @@ export const SOUND_CATS = [
   { id: 'tom', name: 'Toms', emoji: '🛢️' },
   { id: 'fx', name: 'Platillos y FX', emoji: '💫' },
 ];
-const SYNTH_CAT = { kick: 'kick', hardkick: 'kick', snare: 'snare', clap: 'clap', rim: 'perc', hat: 'hat', hatOpen: 'hat', ride: 'hat', shaker: 'perc', guiro: 'perc', congaHi: 'perc', congaLo: 'perc', tomHi: 'tom', tomLo: 'tom', metal: 'perc', crash: 'fx', sweep: 'fx' };
+const SYNTH_CAT = { kick: 'kick', hardkick: 'kick', snare: 'snare', clap: 'clap', rim: 'perc', hat: 'hat', hatOpen: 'hat', ride: 'hat', shaker: 'perc', guiro: 'perc', congaHi: 'perc', congaLo: 'perc', tomHi: 'tom', tomLo: 'tom', metal: 'perc', crash: 'fx', sweep: 'fx', whistle: 'fx' };
 
 let indexP = null;
 export function libraryIndex() {

@@ -191,6 +191,13 @@ export const GENRES = {
     bass: { type: 'reese', pat: 'R-------R---R---' }, chords: { type: 'hoover', pat: 'x-------x-------' }, lead: 'supersaw',
     progs: { minor: [[0, 5, 6, 4], [0, 6, 5, 6]], major: [[0, 4, 5, 3]] },
   },
+  guaracha: {
+    name: 'Guaracha', emoji: '🦜', bpm: [128, 136], mode: 'minor', swing: 0, spb: 9, chordBars: 2, duck: true, openHats: true, riser: true,
+    kick: ['x...x...x...x...'], snare: ['....x.......x...'], snareType: 'clap',
+    hat: ['..x...x...x...x.'], perc: [{ type: 'conga', pat: 'x.xx..x.x.xx..x.', core: true }, { type: 'shaker', pat: 'xgxgxgxgxgxgxgxg', core: true }],
+    bass: { type: 'synth', pat: '..R...R...R..RR.' }, chords: { type: 'stab', pat: 'x..x..x.....x...', chorusType: 'lead', chorusPat: 'x.x.x...x.x.x...' }, lead: 'lead',
+    progs: { minor: [[0, 5, 6, 4], [0, 0, 5, 6], [0, 6, 5, 6]], major: [[0, 4, 5, 3]] },
+  },
   balada: {
     name: 'Balada', emoji: '🌹', bpm: [64, 80], mode: 'major', swing: 0, spb: 8, chordBars: 1,
     kick: ['x.......x.......'], snare: ['....x.......x...'], snareType: 'snare', hat: ['xgxgxgxgxgxgxgxg'],

@@ -117,6 +117,13 @@ export class Synth {
     const car = this.osc('square', 540, t, end); const mod = this.osc('square', 1330, t, end);
     const mg = this.gain(800); mod.connect(mg).connect(car.frequency); car.connect(hp);
   }
+  // Silbato (guaracha / carnaval)
+  _whistle(t, v) {
+    const g = this.gain(); const end = this.env(g.gain, t, 0.01, v * 0.18, 0.12, 0.08);
+    const o = this.osc('sine', 2500, t, end); o.frequency.setValueAtTime(2300, t); o.frequency.linearRampToValueAtTime(2650, t + 0.05);
+    const lfo = this.osc('sine', 38, t, end); const lg = this.gain(120); lfo.connect(lg).connect(o.frequency);
+    o.connect(g).connect(this.o.drums); g.connect(this.o.verb);
+  }
   _crash(t) {
     const g = this.gain(); this.env(g.gain, t, 0.002, 0.22, 0, 1.8);
     const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.start(t); s.stop(t + 2);
@@ -314,6 +321,7 @@ export const DRUMS = {
   tomLo: ['Tom grave', 0.5, (s) => s._tom(0.003, 1, 100)],
   metal: ['Metálico', 0.3, (s) => s._metal(0.003, 1)],
   crash: ['Platillo', 2.2, (s) => s._crash(0.003)],
+  whistle: ['Silbato', 0.4, (s) => s._whistle(0.003, 1)],
   sweep: ['Barrido FX', 2.0, (s) => s._noiseSweep(0.003, 1.9, true)],
 };
 
