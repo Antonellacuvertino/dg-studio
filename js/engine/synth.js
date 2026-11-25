@@ -323,3 +323,30 @@ export function drumBank() {
   }
   return _bank;
 }
+
+// ---------------------------------------------------------------
+//  Reverb por convolución (sin retroalimentación: nunca "pita")
+// ---------------------------------------------------------------
+const _irs = new Map();
+export function reverbIR(sec = 1.8, sr = SR) {
+  const key = sr + '|' + sec; if (_irs.has(key)) return _irs.get(key);
+  const len = Math.floor(sr * sec); const b = new AudioBuffer({ length: len, numberOfChannels: 2, sampleRate: sr });
+  for (let c = 0; c < 2; c++) {
+    const d = b.getChannelData(c); let lp = 0;
+    for (let i = 0; i < len; i++) {
+      const t = i / len; const k = 0.15 + 0.8 * t; // se oscurece con el tiempo
+      lp += (((Math.random() * 2 - 1)) - lp) * (1 - k);
+      d[i] = lp * Math.pow(1 - t, 2.4) * (i < sr * 0.012 ? i / (sr * 0.012) : 1);
+    }
+  }
+  _irs.set(key, b); return b;
+}
+export function makeReverb(ctx, wet = 0.5) {
+  const input = ctx.createGain();
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 250;
+  const conv = ctx.createConvolver(); conv.normalize = true; conv.buffer = reverbIR(1.8, ctx.sampleRate);
+  const out = ctx.createGain(); out.gain.value = wet;
+  input.connect(hp).connect(conv).connect(out);
+  input.out = out;
+  return input;
+}

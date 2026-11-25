@@ -1,4 +1,4 @@
-import { Synth, renderOne, drumBank } from './synth.js';
+import { Synth, renderOne, drumBank, makeReverb } from './synth.js';
 // ===============================================================
 //  Motor de beats — sintetiza baterías, bajos, acordes y melodías
 //  100% original (sin samples de terceros) => libre de derechos.
@@ -279,7 +279,7 @@ class Renderer extends Synth {
     this.musicFilter.connect(this.duck);
     this.music = ctx.createGain(); this.music.gain.value = 0.8; this.music.connect(this.musicFilter);
 
-    this.verb = this.combReverb();
+    this.verb = makeReverb(ctx, 0.9);
     const vg = ctx.createGain(); vg.gain.value = 0.35; this.verb.out.connect(vg).connect(this.beat);
     this.verbSend = ctx.createGain(); this.verbSend.gain.value = 1; this.verbSend.connect(this.verb);
     this.o = { drums: this.drums, music: this.music, bass: this.duck, verb: this.verbSend };

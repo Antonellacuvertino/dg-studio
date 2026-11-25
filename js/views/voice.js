@@ -13,6 +13,7 @@ import { loadProfile, getProfile, saveProfile, deleteProfile, saveRef, singer } 
 import { addSample } from '../studio/samples.js';
 import { currentProject } from './studio.js';
 import { recordOverlay, WavePlayer } from './shared.js';
+import { voiceTypeCards } from './voicetypes.js';
 import { startRecorder } from '../core/audio.js';
 
 let root = null;
@@ -108,6 +109,9 @@ function settingsCard() {
   const pct = (x) => Math.round(x * 100) + '%';
   return h('div.card', {},
     h('h3', {}, '🎚️ Cómo canta tu letra', h('small', {}, 'se aplica en ✍️ Crear')),
+    h('div.muted.small', {}, 'Tipo de voz'),
+    voiceTypeCards(() => render()),
+    h('div.sep'),
     h('div.muted.small', {}, '¿Quién canta?'),
     chips([{ id: 'auto', label: '🤖 Auto' }, { id: 'mine', label: '🧬 Mi voz' }, { id: 'dg', label: '🎤 Voz DG' }, { id: 'none', label: '🔇 Sin voz' }], v.who, (x) => { v.who = x; save(); }),
     h('div.muted.small', { style: { marginTop: '6px' } }, 'Estilo'),
@@ -115,6 +119,9 @@ function settingsCard() {
     h('div.sep'),
     slider('Autotune', v.tune, { fmt: (x) => (x < 0.15 ? 'Natural' : x > 0.8 ? 'Robot' : pct(x)), onchange: (x) => { v.tune = x; save(); } }),
     slider('Tono', v.transpose, { min: -12, max: 12, step: 1, fmt: (x) => `${x > 0 ? '+' : ''}${x} st`, onchange: (x) => { v.transpose = x; save(); } }),
+    slider('Color', v.formant || 1, { min: 0.8, max: 1.3, step: 0.01, fmt: (x) => (x < 0.95 ? 'Gruesa' : x > 1.06 ? 'Fina' : 'Normal'), onchange: (x) => { v.formant = x; save(); } }),
+    slider('Rasposa', v.rasp || 0, { fmt: pct, onchange: (x) => { v.rasp = x; save(); } }),
+    slider('Susurro', v.whisper || 0, { fmt: pct, onchange: (x) => { v.whisper = x; save(); } }),
     slider('Vibrato', v.vibrato, { fmt: pct, onchange: (x) => { v.vibrato = x; save(); } }),
     slider('Humanizar', v.humanize, { fmt: pct, onchange: (x) => { v.humanize = x; save(); } }),
     slider('Aire', v.breath, { fmt: pct, onchange: (x) => { v.breath = x; save(); } }),

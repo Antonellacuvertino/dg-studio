@@ -18,6 +18,8 @@ import { makeProject, newTrack, newScene, CAMELOT, TECHNO } from '../studio/mode
 import { addSample } from '../studio/samples.js';
 import { openProject } from './studio.js';
 import { recordOverlay, fillPrompter, highlight, WavePlayer } from './shared.js';
+import { pickVoiceType } from './voicetypes.js';
+import { VOICE_TYPES } from '../voice/voice.js';
 
 let root = null;
 const S = {
@@ -59,9 +61,11 @@ function render() {
       chips(ORDER().filter((k, i, a) => a.indexOf(k) === i && (k === 'auto' || GENRES[k])).map((k) => ({ id: k, label: k === 'auto' ? '🤖 Auto' : `${GENRES[k].emoji} ${GENRES[k].name}` })), S.genre || 'auto', (k) => { S.genre = k === 'auto' ? null : k; }),
       h('div.muted.small', { style: { marginTop: '6px' } }, 'Duración'),
       chips([{ id: 'auto', label: 'Según la letra' }, { id: 'short', label: 'Corta ~1:30' }, { id: 'normal', label: 'Normal ~2:30' }, { id: 'long', label: 'Larga ~3:30' }, { id: 'dj', label: 'DJ extendida ~6:00' }], S.length, (k) => { S.length = k; db.kvSet('createLength', k); }),
-      h('button.btn.block', { style: { marginTop: '8px', justifyContent: 'space-between' }, onclick: action(voiceQuick) },
-        h('span', {}, `🗣️ Canta: ${prof ? (prof === getProfile() ? 'Mi voz' : 'Voz DG') : 'sin voz'}`),
-        h('span.muted', {}, `Autotune ${Math.round(state.voice.tune * 100)}% ▾`)),
+      h('div.grid2', { style: { marginTop: '8px' } },
+        h('button.btn', { style: { justifyContent: 'space-between' }, onclick: action(async () => { const t = await pickVoiceType(); render(); if (t && S.song && S.notes && (await confirm('¿Aplicar a la canción?', `Vuelvo a cantar con la voz "${t.name}" (el beat no cambia).`, 'Aplicar'))) await revoice(); }) },
+          h('span', {}, `${(VOICE_TYPES.find((x) => x.id === state.voice.type) || VOICE_TYPES[0]).emoji} ${(VOICE_TYPES.find((x) => x.id === state.voice.type) || VOICE_TYPES[0]).name}`), h('span.muted', {}, '▾')),
+        h('button.btn', { style: { justifyContent: 'space-between' }, onclick: action(voiceQuick) },
+          h('span', {}, prof ? (prof === getProfile() ? '🧬 Tu timbre' : '🎤 Voz DG') : '🔇 Sin voz'), h('span.muted', {}, `AT ${Math.round(state.voice.tune * 100)}% ▾`))),
       h('div.row', { style: { marginTop: '10px' } },
         h('button.btn.icon', { title: 'Grabar', onclick: action(recordInput) }, '🎤'),
         h('button.btn.icon', { title: 'Subir audio', onclick: action(uploadInput) }, '📎'),

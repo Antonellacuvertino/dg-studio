@@ -20,6 +20,10 @@ export const VOICE_DEFAULTS = {
   space: 0.4,      // reverb + delay de la voz
   style: 'auto',   // auto | sung | rap
   who: 'auto',     // auto | mine | dg | none
+  type: 'natural', // tipo de voz (Mi voz natural, Otaku, Fina, Gruesa…)
+  formant: 1,      // color de la voz: >1 más fina, <1 más gruesa
+  rasp: 0,         // voz rasposa
+  whisper: 0,      // susurro
 };
 
 export const state = {

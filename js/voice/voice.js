@@ -309,10 +309,13 @@ export function melodyView(song, profile, settings) {
 // ---------------------------------------------------------------
 //  Síntesis (PSOLA)
 // ---------------------------------------------------------------
+// Opciones del timbre durante un render: F = formantes (1 normal, >1 más fina, <1 más gruesa),
+// rasp = voz rasposa, whisper = susurro
+const RO = { F: 1, rasp: 0, whisper: 0 };
 function psola(out, start, len, src, f0fn, gain, att = 0.012, rel = 0.035, am = null) {
   if (!src || len <= 0) return;
   if (src.noise) return noiseFrom(out, start, len, src.data, gain);
-  const { data, marks, T } = src; const W = Math.round(T);
+  const { data, marks, T } = src; const W = Math.round(T); const F = RO.F || 1; const W2 = Math.max(8, Math.round(W / F));
   const usable = marks.filter((m) => m - W >= 0 && m + W < data.length);
   if (usable.length < 3) return;
   let pos = 0, sp = Math.floor(usable.length * 0.3), dir = 1, acc = 0;
@@ -322,10 +325,14 @@ function psola(out, start, len, src, f0fn, gain, att = 0.012, rel = 0.035, am = 
     let e = Math.min(1, pos / A, (len - pos) / R);
     if (am) e *= am(pos / SR);
     if (e > 0) {
-      const m = usable[sp]; const k0 = start + Math.round(pos); const gg = e * gain * Math.min(1.6, P / T);
-      for (let j = -W; j < W; j++) {
+      const m = usable[sp]; const k0 = start + Math.round(pos);
+      const gg = e * gain * Math.min(1.6, P / W2) * (RO.rasp ? 1 - RO.rasp * 0.7 * Math.random() : 1) * (1 - 0.85 * RO.whisper);
+      for (let j = -W2; j < W2; j++) {
         const k = k0 + j; if (k < 0 || k >= out.length) continue;
-        out[k] += data[m + j] * (0.5 - 0.5 * Math.cos((Math.PI * (j + W)) / W)) * gg;
+        // leer el grano estirado/comprimido: cambia el "color" (formantes) sin cambiar la nota
+        const x = m + j * F; const xi = Math.floor(x); const fr = x - xi;
+        const v = (data[xi] || 0) * (1 - fr) + (data[xi + 1] || 0) * fr;
+        out[k] += v * (0.5 - 0.5 * Math.cos((Math.PI * (j + W2)) / W2)) * gg;
       }
     }
     pos += P; acc += P;
@@ -370,7 +377,8 @@ function consonant(out, start, len, c, prof, f0fn, vowel) {
 }
 
 export function renderVocals(notes, profile, totalSec, settings = {}, seed = 1) {
-  const st = { tune: 0.35, vibrato: 0.5, humanize: 0.5, breath: 0.3, ...settings };
+  const st = { tune: 0.35, vibrato: 0.5, humanize: 0.5, breath: 0.3, formant: 1, rasp: 0, whisper: 0, ...settings };
+  RO.F = st.formant || 1; RO.rasp = st.rasp || 0; RO.whisper = st.whisper || 0;
   const out = new Float32Array(Math.ceil(totalSec * SR));
   const S = profile.sources;
   const r = rng(seed * 977 + 13);
@@ -412,8 +420,8 @@ export function renderVocals(notes, profile, totalSec, settings = {}, seed = 1) 
     psola(out, vStart, vL - Math.floor(gOut * 0.6), S[s.vowel], f0At((vStart - start) / SR), gain, 0.018, rel);
     if (gOut) psola(out, vStart + vL - gOut, gOut, S[s.glideOut], f0At((vStart + vL - gOut - start) / SR), gain * 0.85, 0.02, 0.025);
     // aire en la voz (menos "zumbido")
-    if (st.breath > 0) {
-      const A = 0.03 * st.breath; const L = vL;
+    if (st.breath > 0 || st.whisper > 0) {
+      const A = 0.03 * st.breath + 0.16 * (st.whisper || 0); const L = vL;
       for (let i = 0; i < L; i++) { const k = vStart + i; if (k >= out.length) break; const e = Math.min(1, i / 400, (L - i) / 900); out[k] += breathBP(WHITE[(k * 7) % WHITE.length]) * A * e; }
     }
     let p2 = start + vLen;
@@ -445,3 +453,19 @@ export function demoVocals(profile, settings = {}) {
   const notes = planVocals(fake, profile, { ...settings, style: 'sung' });
   return toBuffer([renderVocals(notes, profile, 5.6, settings)]);
 }
+
+
+// ---------------------------------------------------------------
+//  Tipos de voz (se aplican sobre tu voz o la Voz DG)
+// ---------------------------------------------------------------
+export const VOICE_TYPES = [
+  { id: 'natural', name: 'Mi voz natural', emoji: '🧬', sub: 'Tu timbre, poco autotune', base: 'mine', set: { transpose: 0, formant: 1, tune: 0.12, vibrato: 0.45, humanize: 0.7, breath: 0.35, rasp: 0, whisper: 0 } },
+  { id: 'tuned', name: 'Mi voz + autotune', emoji: '🎛️', sub: 'Efecto trap / reggaetón', base: 'mine', set: { transpose: 0, formant: 1, tune: 0.85, vibrato: 0.1, humanize: 0.3, breath: 0.25, rasp: 0, whisper: 0 } },
+  { id: 'normal', name: 'Voz normal (DG)', emoji: '🎤', sub: 'Voz de la app, neutra', base: 'dg', set: { transpose: 0, formant: 1, tune: 0.3, vibrato: 0.5, humanize: 0.6, breath: 0.3, rasp: 0, whisper: 0 } },
+  { id: 'otaku', name: 'Otaku (anime)', emoji: '🌸', sub: 'Aguda, dulce, mucho brillo', base: 'any', set: { transpose: 7, formant: 1.22, tune: 0.55, vibrato: 0.8, humanize: 0.5, breath: 0.45, rasp: 0, whisper: 0 } },
+  { id: 'fina', name: 'Fina', emoji: '🪶', sub: 'Más aguda y delicada', base: 'any', set: { transpose: 4, formant: 1.12, tune: 0.35, vibrato: 0.6, humanize: 0.6, breath: 0.5, rasp: 0, whisper: 0 } },
+  { id: 'gruesa', name: 'Gruesa', emoji: '🐻', sub: 'Grave y pesada', base: 'any', set: { transpose: -6, formant: 0.84, tune: 0.3, vibrato: 0.35, humanize: 0.6, breath: 0.2, rasp: 0, whisper: 0 } },
+  { id: 'ronca', name: 'Ronca / rasposa', emoji: '🔥', sub: 'Con textura y garra', base: 'any', set: { transpose: -2, formant: 0.92, tune: 0.3, vibrato: 0.3, humanize: 0.7, breath: 0.4, rasp: 0.55, whisper: 0 } },
+  { id: 'susurro', name: 'Susurro', emoji: '🌫️', sub: 'Íntima, con mucho aire', base: 'any', set: { transpose: 0, formant: 1.04, tune: 0.2, vibrato: 0.2, humanize: 0.6, breath: 0.9, rasp: 0, whisper: 0.75 } },
+  { id: 'robot', name: 'Robot', emoji: '🤖', sub: 'Autotune al 100%', base: 'any', set: { transpose: 0, formant: 1, tune: 1, vibrato: 0, humanize: 0, breath: 0.1, rasp: 0, whisper: 0 } },
+];

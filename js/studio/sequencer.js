@@ -7,7 +7,10 @@ import { Synth, drumBank, SR, renderOne } from '../engine/synth.js';
 import { SYNTHS, degToMidi } from './model.js';
 import { Mixer } from './mixer.js';
 import { loadProjectSamples } from './samples.js';
+import { loadProjectLib } from './library.js';
 import { audio } from '../core/audio.js';
+
+const LIVE_CACHE = new Map(); const LIVE_READY = new Map();
 
 export class Player {
   constructor(ctx, project, bank, samples) {
@@ -15,7 +18,26 @@ export class Player {
     this.mixer = new Mixer(ctx, project);
     this.synth = new Synth(ctx, { drums: this.mixer.master, music: this.mixer.master, bass: this.mixer.master, verb: this.mixer.rev });
     this.offline = typeof OfflineAudioContext !== 'undefined' && ctx instanceof OfflineAudioContext;
-    this.pending = []; this.cache = new Map();
+    this.pending = []; this.cache = this.offline ? new Map() : LIVE_CACHE;
+    this.lib = new Map();
+  }
+  // En vivo: usar la nota ya sintetizada si existe; si no, sintetizarla en segundo plano
+  liveNote(pr, midi, dur, vel) {
+    const d = Math.round(dur * 50) / 50; const v = Math.round(vel * 10) / 10;
+    const key = `${pr.fn}|${pr.type}|${midi}|${d}|${v}`;
+    const hit = LIVE_READY.get(key); if (hit) return hit;
+    if (!this.cache.has(key)) {
+      if (this.cache.size > 600) { this.cache.clear(); LIVE_READY.clear(); }
+      this.cache.set(key, renderOne(d + (pr.fn === 'bass' ? 0.6 : 2.6), (s) => (pr.fn === 'bass' ? s._bass(pr.type, 0.003, midi, d, v) : s._voice(pr.type, 0.003, midi, d, v))).then((b) => { LIVE_READY.set(key, b); return b; }));
+    }
+    return null;
+  }
+  // Pre-sintetizar todas las notas del proyecto antes de tocar
+  async prewarm() {
+    const p = this.p; const sd = 60 / p.bpm / 4;
+    p.tracks.forEach((tr) => { if (tr.kind !== 'synth') return; const pr = SYNTHS[tr.preset] || SYNTHS.lead;
+      tr.pattern.notes.forEach((n) => this.liveNote(pr, degToMidi(p, pr, n.d) + (tr.pitch || 0), Math.max(0.05, n.len * sd * 0.98), n.vel ?? 1)); });
+    await Promise.all([...this.cache.values()]);
   }
   // Exportación: cada nota distinta se sintetiza una vez y se reutiliza (mucho más rápido)
   note(pr, t, midi, dur, vel, ch) {
@@ -50,7 +72,7 @@ export class Player {
       const rate = Math.pow(2, (tr.pitch || 0) / 12);
       if (tr.kind === 'drum') {
         const v = tr.pattern.steps[i]; if (!v) continue;
-        const buf = tr.sampleId ? this.samples.get(tr.sampleId) : this.bank[tr.sound === 'hat' && i % 2 ? 'hat2' : tr.sound];
+        const buf = tr.sampleId ? this.samples.get(tr.sampleId) : tr.sound && tr.sound.startsWith('lib:') ? this.lib.get(tr.sound) : this.bank[tr.sound === 'hat' && i % 2 ? 'hat2' : tr.sound];
         if (buf) this.play(buf, tt, v, ch, rate);
         if (tr.role === 'kick' || /kick/.test(tr.sound)) mx.duckAt(tt, sd);
       } else if (tr.kind === 'synth') {
@@ -60,7 +82,9 @@ export class Player {
           if (n.s !== i) continue;
           const midi = degToMidi(p, pr, n.d) + (tr.pitch || 0);
           const dur = Math.max(0.05, n.len * sd * 0.98);
-          if (this.offline) this.note(pr, tt, midi, dur, n.vel ?? 1, ch);
+          if (this.offline) { this.note(pr, tt, midi, dur, n.vel ?? 1, ch); continue; }
+          const nb = this.liveNote(pr, midi, dur, n.vel ?? 1);
+          if (nb) this.play(nb, tt, 1, ch);
           else if (pr.fn === 'bass') this.synth._bass(pr.type, tt, midi, dur, n.vel ?? 1, null, ch.input);
           else this.synth._voice(pr.type, tt, midi, dur, n.vel ?? 1, ch.input);
         }
@@ -108,8 +132,10 @@ export class Transport {
   async play(project, { mode = 'scene', scene = 0 } = {}) {
     this.stop();
     const ctx = audio();
-    const [bank, samples] = await Promise.all([drumBank(), loadProjectSamples(project)]);
-    this.player = new Player(ctx, project, bank, samples);
+    const [bank, samples, lib] = await Promise.all([drumBank(), loadProjectSamples(project), loadProjectLib(project)]);
+    const P = new Player(ctx, project, bank, samples); P.lib = lib;
+    await P.prewarm();
+    this.player = P;
     this.mode = mode; this.sceneIdx = Math.min(scene, project.scenes.length - 1); this.s = 0;
     this.next = ctx.currentTime + 0.1; this.queue = []; this.playing = true;
     this.timer = setInterval(() => this.tick(), 25); this.tick();
@@ -146,6 +172,7 @@ export class Transport {
   }
   setScene(i) { this.sceneIdx = i; this.s = 0; }
   // cambios en vivo de mezcla
+  async refreshLib() { if (this.player) { const m = await loadProjectLib(this.player.p); m.forEach((v, k) => this.player.lib.set(k, v)); } }
   update(track) { if (this.player) { this.player.mixer.channel(track); this.player.mixer.update(track); this.player.mixer.refresh(); } }
   setBpm(bpm) { if (this.player) this.player.mixer.setBpm(bpm); }
   on(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
@@ -157,13 +184,13 @@ export const transport = new Transport();
 //  Exportar (render offline) — canción completa o una escena
 // ---------------------------------------------------------------
 export async function renderProject(project, { sceneIdx = null, onProgress = null, tail = 2.5 } = {}) {
-  const [bank, samples] = await Promise.all([drumBank(), loadProjectSamples(project)]);
+  const [bank, samples, lib] = await Promise.all([drumBank(), loadProjectSamples(project), loadProjectLib(project)]);
   const sd = 60 / project.bpm / 4;
   const list = sceneIdx == null ? project.scenes.map((_, i) => i) : [sceneIdx];
   const totalSteps = list.reduce((a, i) => a + project.scenes[i].bars * 16, 0);
   const dur = totalSteps * sd + tail;
   const oc = new OfflineAudioContext(2, Math.ceil(dur * SR), SR);
-  const P = new Player(oc, project, bank, samples);
+  const P = new Player(oc, project, bank, samples); P.lib = lib;
   const quantum = 128 / SR;
   let t = 0.05; const jobs = [];
   list.forEach((si) => {

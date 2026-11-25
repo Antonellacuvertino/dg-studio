@@ -1,0 +1,362 @@
+[
+ {
+  "id": "808-kick-long",
+  "name": "808 Bombo largo",
+  "cat": "kick",
+  "file": "samples/808-kick-long.wav",
+  "dur": 2.0,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-kick",
+  "name": "808 Bombo",
+  "cat": "kick",
+  "file": "samples/808-kick.wav",
+  "dur": 0.86,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-kick-punch",
+  "name": "808 Bombo punch",
+  "cat": "kick",
+  "file": "samples/808-kick-punch.wav",
+  "dur": 0.3,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-kick-boom",
+  "name": "808 Bombo boom",
+  "cat": "kick",
+  "file": "samples/808-kick-boom.wav",
+  "dur": 1.78,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-kick-tight",
+  "name": "808 Bombo seco",
+  "cat": "kick",
+  "file": "samples/808-kick-tight.wav",
+  "dur": 0.8,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-kick-deep",
+  "name": "808 Bombo profundo",
+  "cat": "kick",
+  "file": "samples/808-kick-deep.wav",
+  "dur": 1.72,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-snare",
+  "name": "808 Caja",
+  "cat": "snare",
+  "file": "samples/808-snare.wav",
+  "dur": 0.22,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-snare-bright",
+  "name": "808 Caja brillante",
+  "cat": "snare",
+  "file": "samples/808-snare-bright.wav",
+  "dur": 0.21,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-snare-snap",
+  "name": "808 Caja snap",
+  "cat": "snare",
+  "file": "samples/808-snare-snap.wav",
+  "dur": 0.23,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-clap",
+  "name": "808 Palmas",
+  "cat": "clap",
+  "file": "samples/808-clap.wav",
+  "dur": 0.8,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-hat",
+  "name": "808 Hi-hat",
+  "cat": "hat",
+  "file": "samples/808-hat.wav",
+  "dur": 0.1,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-openhat",
+  "name": "808 Hat abierto corto",
+  "cat": "hat",
+  "file": "samples/808-openhat.wav",
+  "dur": 0.6,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-openhat-long",
+  "name": "808 Hat abierto largo",
+  "cat": "hat",
+  "file": "samples/808-openhat-long.wav",
+  "dur": 0.37,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-cowbell",
+  "name": "808 Cowbell",
+  "cat": "perc",
+  "file": "samples/808-cowbell.wav",
+  "dur": 0.5,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-clave",
+  "name": "808 Clave",
+  "cat": "perc",
+  "file": "samples/808-clave.wav",
+  "dur": 0.04,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-rim",
+  "name": "808 Aro",
+  "cat": "perc",
+  "file": "samples/808-rim.wav",
+  "dur": 0.01,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-maracas",
+  "name": "808 Maracas",
+  "cat": "perc",
+  "file": "samples/808-maracas.wav",
+  "dur": 0.03,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-tom-lo",
+  "name": "808 Tom grave",
+  "cat": "tom",
+  "file": "samples/808-tom-lo.wav",
+  "dur": 0.55,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-tom-mid",
+  "name": "808 Tom medio",
+  "cat": "tom",
+  "file": "samples/808-tom-mid.wav",
+  "dur": 0.41,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-tom-hi",
+  "name": "808 Tom agudo",
+  "cat": "tom",
+  "file": "samples/808-tom-hi.wav",
+  "dur": 0.38,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-conga-lo",
+  "name": "808 Conga grave",
+  "cat": "perc",
+  "file": "samples/808-conga-lo.wav",
+  "dur": 0.5,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-conga-mid",
+  "name": "808 Conga media",
+  "cat": "perc",
+  "file": "samples/808-conga-mid.wav",
+  "dur": 0.25,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-conga-hi",
+  "name": "808 Conga aguda",
+  "cat": "perc",
+  "file": "samples/808-conga-hi.wav",
+  "dur": 0.22,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-cymbal",
+  "name": "808 Platillo",
+  "cat": "fx",
+  "file": "samples/808-cymbal.wav",
+  "dur": 1.54,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "808-cymbal-2",
+  "name": "808 Platillo 2",
+  "cat": "fx",
+  "file": "samples/808-cymbal-2.wav",
+  "dur": 2.0,
+  "source": "TR-808 · Michael Fischer (CC0)"
+ },
+ {
+  "id": "ac-kick",
+  "name": "Bombo acústico",
+  "cat": "kick",
+  "file": "samples/ac-kick.wav",
+  "dur": 1.2,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-snare",
+  "name": "Caja acústica",
+  "cat": "snare",
+  "file": "samples/ac-snare.wav",
+  "dur": 0.8,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-clap",
+  "name": "Palmas reales",
+  "cat": "clap",
+  "file": "samples/ac-clap.wav",
+  "dur": 0.32,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-hat",
+  "name": "Hi-hat real",
+  "cat": "hat",
+  "file": "samples/ac-hat.wav",
+  "dur": 0.51,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-tom",
+  "name": "Tom real",
+  "cat": "tom",
+  "file": "samples/ac-tom.wav",
+  "dur": 0.93,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-bongo",
+  "name": "Bongó",
+  "cat": "perc",
+  "file": "samples/ac-bongo.wav",
+  "dur": 0.6,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-conga",
+  "name": "Conga real",
+  "cat": "perc",
+  "file": "samples/ac-conga.wav",
+  "dur": 0.62,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-darbuka",
+  "name": "Darbuka",
+  "cat": "perc",
+  "file": "samples/ac-darbuka.wav",
+  "dur": 0.39,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-frame",
+  "name": "Tambor de marco",
+  "cat": "perc",
+  "file": "samples/ac-frame.wav",
+  "dur": 1.0,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-cajon",
+  "name": "Cajón",
+  "cat": "perc",
+  "file": "samples/ac-cajon.wav",
+  "dur": 0.54,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-claves",
+  "name": "Claves",
+  "cat": "perc",
+  "file": "samples/ac-claves.wav",
+  "dur": 0.4,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-guiro",
+  "name": "Güiro real",
+  "cat": "perc",
+  "file": "samples/ac-guiro.wav",
+  "dur": 0.58,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-shaker",
+  "name": "Shaker real",
+  "cat": "perc",
+  "file": "samples/ac-shaker.wav",
+  "dur": 0.18,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-tambourine",
+  "name": "Pandereta",
+  "cat": "perc",
+  "file": "samples/ac-tambourine.wav",
+  "dur": 0.8,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-woodblock",
+  "name": "Bloque de madera",
+  "cat": "perc",
+  "file": "samples/ac-woodblock.wav",
+  "dur": 0.35,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-agogo",
+  "name": "Agogó",
+  "cat": "perc",
+  "file": "samples/ac-agogo.wav",
+  "dur": 0.8,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-brake",
+  "name": "Brake drum (industrial)",
+  "cat": "perc",
+  "file": "samples/ac-brake.wav",
+  "dur": 1.0,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-anvil",
+  "name": "Yunque (industrial)",
+  "cat": "perc",
+  "file": "samples/ac-anvil.wav",
+  "dur": 1.0,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-triangle",
+  "name": "Triángulo",
+  "cat": "perc",
+  "file": "samples/ac-triangle.wav",
+  "dur": 1.5,
+  "source": "VCSL · Versilian Studios (CC0)"
+ },
+ {
+  "id": "ac-cymbal",
+  "name": "Platillo real",
+  "cat": "fx",
+  "file": "samples/ac-cymbal.wav",
+  "dur": 2.5,
+  "source": "VCSL · Versilian Studios (CC0)"
+ }
+]

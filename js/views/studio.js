@@ -13,10 +13,12 @@ import { SYNTHS, DRUM_LIST, SCENE_FX, CAMELOT, TECHNO, newTrack, newScene, makeP
 import { transport, renderProject } from '../studio/sequencer.js';
 import { addSample, listSamples, sampleBuffer } from '../studio/samples.js';
 import { recordOverlay } from './shared.js';
+import { renderGrid, loopView } from './beatgrid.js';
+import { soundNameSync } from '../studio/library.js';
 
 let P = null;               // proyecto abierto
 let root = null;
-const ui = { sel: null, scene: 0, etab: 'pattern', view: 'tracks', mode: 'scene', noteLen: 1, pos: null };
+const ui = { sel: null, scene: 0, etab: 'pattern', view: 'tracks', mode: 'scene', noteLen: 1, pos: null, easy: true };
 let saveT = null;
 
 // ---------------------------------------------------------------
@@ -34,6 +36,7 @@ export async function openProject(p, { silent = false } = {}) {
 }
 export async function initStudio(el) {
   root = el;
+  ui.easy = await db.kvGet('studioEasy', true);
   let p = state.projectId ? await db.get('projects', state.projectId) : null;
   if (!p) { const all = await db.all('projects'); p = all.sort((a, b) => b.updated - a.updated)[0] || null; }
   if (!p) p = makeProject('hardtechno', { name: 'Mi primer hard techno' });
@@ -49,12 +52,17 @@ function render() {
   if (!root || !P) return;
   const scene = P.scenes[ui.scene] || P.scenes[0];
   root.innerHTML = '';
+  if (ui.easy) {
+    renderGrid(root, P, { save: saveSoon, rerender: render, openMenu: menu, goAdvanced: () => { transport.stop(); ui.easy = false; db.kvSet('studioEasy', false); render(); } });
+    return;
+  }
   put(root, 
     h('div.row', { style: { marginTop: '12px' } },
       h('div.grow', {},
         h('h2.vt', { style: { margin: '0' } }, P.name),
         h('div.muted.small', {}, `${GENRES[P.genre] ? GENRES[P.genre].emoji + ' ' + GENRES[P.genre].name + ' · ' : ''}${keyLabel(P, NOTE_ES)} · ${fmtDur(projectSeconds(P))}`)),
-      h('button.btn.sm', { onclick: action(menu) }, '⋯ Proyecto')),
+      h('button.btn.sm', { onclick: () => { transport.stop(); ui.easy = true; db.kvSet('studioEasy', true); render(); } }, '🟥 Fácil'),
+      h('button.btn.sm', { onclick: action(menu) }, '⋯')),
     transportBar(),
     sceneStrip(),
     sceneTools(scene),
@@ -116,6 +124,15 @@ function onTransport(e) {
 }
 function clearPlayhead() { root.querySelectorAll('.ph').forEach((x) => x.classList.remove('ph')); }
 function drawPlayhead(pos) {
+  if (ui.easy) {
+    clearPlayhead();
+    const head = root.querySelectorAll('.bg-head .bg-cells > span'); if (head[pos.s % 16]) head[pos.s % 16].classList.add('ph');
+    P.tracks.forEach((t, ti) => {
+      const row = root.querySelectorAll('.bg-row:not(.bg-head)')[ti]; if (!row) return;
+      const b = row.querySelector(`[data-step="${pos.s % (t.pattern.len || 16)}"]`); if (b) b.classList.add('ph');
+    });
+    return;
+  }
   const t = sel(); if (!t) return;
   clearPlayhead();
   if (pos.scene !== ui.scene && ui.mode === 'scene') return;
@@ -164,7 +181,7 @@ function trackList(scene) {
   if (!P.tracks.length) box.append(h('div.card.muted', {}, 'Sin pistas todavía. Toca ＋ Pista o ve a 🔁 Loops.'));
   P.tracks.forEach((t) => {
     const inScene = !!(scene && scene.on[t.id]);
-    const sub = t.kind === 'drum' ? (t.sampleId ? 'Sample' : (DRUM_LIST.find((d) => d.id === t.sound) || {}).name || t.sound) : t.kind === 'synth' ? (SYNTHS[t.preset] || {}).name : t.kind === 'audio' ? 'Audio' : 'Sample';
+    const sub = t.kind === 'drum' ? (t.sampleId ? 'Sample' : soundNameSync(t.sound)) : t.kind === 'synth' ? (SYNTHS[t.preset] || {}).name : t.kind === 'audio' ? 'Audio' : 'Sample';
     const row = h('div.trk' + (t.id === ui.sel ? '.sel' : ''), {},
       h('div.clr', { style: { background: t.color } }),
       h('div.tn', { onclick: () => { ui.sel = t.id; render(); } }, h('b', {}, t.name), h('span', {}, sub + ` · ${t.pattern.len / 16} comp.`)),

@@ -1,3 +1,4 @@
+import { makeReverb } from '../engine/synth.js';
 // ===============================================================
 //  Mezclador: un canal por pista + buses de reverb y delay + máster
 //  canal: entrada → saturación → HP → LP → sidechain → paneo → volumen
@@ -24,24 +25,14 @@ export class Mixer {
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -10; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.12; comp.knee.value = 6;
     this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 1024;
-    master.connect(this.masterHP).connect(this.masterLP).connect(comp).connect(this.analyser).connect(ctx.destination);
+    const clip = ctx.createWaveShaper(); const cc = new Float32Array(2048);
+    for (let i = 0; i < cc.length; i++) { const x = (i / (cc.length - 1)) * 2 - 1; cc[i] = Math.abs(x) < 0.7 ? x : Math.sign(x) * (0.7 + 0.28 * Math.tanh((Math.abs(x) - 0.7) / 0.28)); }
+    clip.curve = cc;
+    master.connect(this.masterHP).connect(this.masterLP).connect(comp).connect(clip).connect(this.analyser).connect(ctx.destination);
     this.master = master;
 
-    // reverb algorítmica
-    this.rev = ctx.createGain();
-    const pre = ctx.createBiquadFilter(); pre.type = 'highpass'; pre.frequency.value = 300; this.rev.connect(pre);
-    const merger = ctx.createChannelMerger(2); const rOut = ctx.createGain(); rOut.gain.value = 0.5;
-    [[0.0297, 0.0371, 0.0411, 0.0437], [0.0313, 0.0353, 0.0429, 0.0461]].forEach((times, ch) => {
-      const sum = ctx.createGain(); sum.gain.value = 0.25;
-      times.forEach((dt) => {
-        const d = ctx.createDelay(0.3); d.delayTime.value = dt * 1.7;
-        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4000;
-        const fb = ctx.createGain(); fb.gain.value = 0.82;
-        pre.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(sum);
-      });
-      sum.connect(merger, 0, ch);
-    });
-    merger.connect(rOut).connect(master);
+    // reverb por convolución (estable, sin pitidos)
+    this.rev = makeReverb(ctx, 0.55); this.rev.out.connect(master);
 
     // delay sincronizado (3/16)
     this.del = ctx.createGain();

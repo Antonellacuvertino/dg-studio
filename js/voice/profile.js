@@ -2,7 +2,7 @@
 //  Perfil de voz guardado en el dispositivo (IndexedDB)
 // ===============================================================
 import { db } from '../core/db.js';
-import { deserializeProfile, defaultProfile, b64ToF32 } from './voice.js';
+import { deserializeProfile, defaultProfile, b64ToF32, VOICE_TYPES } from './voice.js';
 import { state, emit } from '../core/state.js';
 
 let profile = null; let loaded = false;
@@ -36,5 +36,13 @@ export function singer() {
   if (who === 'none') return null;
   if (who === 'mine' && profile) return profile;
   return defaultProfile();
+}
+// Elegir un tipo de voz: ajusta todos los controles a la vez
+export function applyVoiceType(id) {
+  const t = VOICE_TYPES.find((x) => x.id === id); if (!t) return;
+  Object.assign(state.voice, t.set, { type: id });
+  if (t.base === 'mine') state.voice.who = 'mine';
+  else if (t.base === 'dg') state.voice.who = 'dg';
+  else if (state.voice.who === 'none') state.voice.who = 'auto';
 }
 export const singerName = (p) => (!p ? 'nadie' : p === profile ? 'tu voz' : 'la Voz DG');

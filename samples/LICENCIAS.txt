@@ -1,0 +1,12 @@
+SONIDOS INCLUIDOS EN DG STUDIO
+==============================
+Todos los sonidos de esta carpeta son de DOMINIO PÚBLICO (CC0 1.0):
+se pueden usar, modificar y monetizar sin dar crédito ni pagar regalías.
+
+808-*.wav  — Roland TR-808 Sound Sample Set de Michael Fischer (Technopolis, 1994),
+             publicado bajo CC0 1.0 en https://github.com/tidalcycles/sounds-tr808-fischer
+ac-*.wav   — Versilian Community Sample Library (VCSL), Versilian Studios,
+             CC0 1.0, https://github.com/sgossner/VCSL
+
+Los sonidos marcados "(DG)" en la app los sintetiza DG Studio en tu dispositivo.
+Las muestras fueron convertidas (mono, 44,1 kHz, recortadas y normalizadas).
