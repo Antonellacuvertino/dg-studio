@@ -45,7 +45,6 @@ function screenVoice(t, t0) {
   const lt = t - t0;
   for (let i = 0; i < 96; i++) { const x = 34 + i * 9.8; const hh = 20 + 220 * Math.abs(Math.sin(i * 0.37 + 1.3) * Math.sin(i * 0.11)) * (0.6 + kick(t) * 0.5); RR(s, x, 260 - hh / 2, 6, hh, 3); s.fillStyle = i < lt * 30 ? '#ff2d4b' : '#4a1c23'; s.fill(); }
   [['🌸 Otaku', 0], ['🪶 Fina', 1], ['🐻 Gruesa', 2], ['🤖 Robot', 3]].forEach(([l, i]) => { const x = 34 + i * 238; RR(s, x, 430, 222, 70, 16); s.fillStyle = i === 3 ? '#3a0b13' : '#210b0e'; s.fill(); if (i === 3) { s.lineWidth = 3; s.strokeStyle = '#ff2d4b'; s.stroke(); } T(s, l, x + 111, 465, 24, '#fff', 800, 'center'); });
-  T(s, '✍️ fuego en la pista hasta que salga el sol', 34, 570, 24, '#ffd6dc', 700);
 }
 function screenMix(t, t0) {
   s.fillStyle = '#0c0405'; s.fillRect(0, 0, SW, SH);
@@ -60,26 +59,72 @@ function screenMix(t, t0) {
   });
   const ph = 40 + clamp(lt / 2.4) * 900; s.fillStyle = '#fff'; s.fillRect(ph, 84, 3, 530);
 }
+// ---------- escena cinematográfica: portal de piedra en la niebla ----------
+const rnd = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const PART = Array.from({ length: 110 }, (_, i) => ({ x: rnd(i) * SW, y: rnd(i + 99) * SH, sp: 8 + rnd(i + 7) * 26, r: 0.8 + rnd(i + 3) * 2.6, ph: rnd(i + 5) * 6.28 }));
+const STONES = Array.from({ length: 19 }, (_, i) => ({ a: Math.PI + (i / 18) * Math.PI, j: rnd(i + 40) }));
+function portal(t, power, logoA) {
+  const cx = 600, base = 520, rx = 150, ry = 230; const push = 1 + t * 0.012; const cy = base - ry * 0.45;
+  s.save(); s.translate(cx, base - 120); s.scale(push, push); s.translate(-cx, -(base - 120));
+  // cueva / cielo
+  let gr = s.createLinearGradient(0, 0, 0, SH); gr.addColorStop(0, '#05070d'); gr.addColorStop(0.6, '#0a0b14'); gr.addColorStop(1, '#020204'); s.fillStyle = gr; s.fillRect(-200, -200, SW + 400, SH + 400);
+  // rayos de luz desde arriba
+  s.save(); s.globalCompositeOperation = 'lighter';
+  for (let k = 0; k < 4; k++) { const x0 = 300 + k * 55 + Math.sin(t * 0.3 + k) * 10; const rg = s.createLinearGradient(x0, -50, x0 + 260, base); rg.addColorStop(0, `rgba(255,215,170,${0.10 + k * 0.015})`); rg.addColorStop(1, 'rgba(255,190,140,0)'); s.fillStyle = rg; s.beginPath(); s.moveTo(x0, -60); s.lineTo(x0 + 40 + k * 10, -60); s.lineTo(x0 + 330, base + 40); s.lineTo(x0 + 230, base + 40); s.closePath(); s.fill(); }
+  s.restore();
+  // suelo
+  gr = s.createLinearGradient(0, base - 20, 0, SH); gr.addColorStop(0, '#0d0c12'); gr.addColorStop(1, '#030304'); s.fillStyle = gr; s.fillRect(-200, base - 10, SW + 400, SH);
+  // reflejo del núcleo en el suelo
+  let rg = s.createRadialGradient(cx, base + 10, 5, cx, base + 10, 380); rg.addColorStop(0, `rgba(255,30,60,${0.55 * power})`); rg.addColorStop(1, 'rgba(255,0,30,0)');
+  s.save(); s.globalCompositeOperation = 'lighter'; s.fillStyle = rg; s.beginPath(); s.ellipse(cx, base + 10, 380, 80, 0, 0, 7); s.fill(); s.restore();
+  // núcleo del portal
+  rg = s.createRadialGradient(cx, cy, 4, cx, cy, ry * 1.2); rg.addColorStop(0, `rgba(255,230,235,${0.9 * power})`); rg.addColorStop(0.18, `rgba(255,40,75,${0.85 * power})`); rg.addColorStop(0.6, `rgba(150,0,30,${0.35 * power})`); rg.addColorStop(1, 'rgba(60,0,10,0)');
+  s.save(); s.globalCompositeOperation = 'lighter'; s.fillStyle = rg; s.beginPath(); s.ellipse(cx, cy, rx * 1.9, ry * 1.3, 0, 0, 7); s.fill();
+  for (let k = 0; k < 3; k++) { const ph = (t * 0.6 + k / 3) % 1; s.strokeStyle = `rgba(255,70,100,${(1 - ph) * 0.5 * power})`; s.lineWidth = 3; s.beginPath(); s.ellipse(cx, cy, rx * 0.4 * (0.3 + ph), ry * 0.45 * (0.3 + ph), 0, 0, 7); s.stroke(); }
+  s.restore();
+  // logo dentro del portal
+  if (logoA > 0) { s.save(); s.globalAlpha = logoA; s.shadowColor = '#ff2d4b'; s.shadowBlur = 40; T(s, 'DG', cx, cy, 92, '#fff', 900, 'center'); s.shadowBlur = 0; s.restore(); }
+  // arco de piedras
+  STONES.forEach((st) => {
+    const x = cx + Math.cos(st.a) * rx, y = base + Math.sin(st.a) * ry; const lit = 0.35 + 0.65 * power;
+    s.save(); s.translate(x, y); s.rotate(st.a + Math.PI / 2);
+    const sg = s.createLinearGradient(0, -26, 0, 26); sg.addColorStop(0, `rgb(${70 + 120 * lit * (0.6 + 0.4 * st.j) | 0},${62 + 40 * lit | 0},${60 + 40 * lit | 0})`); sg.addColorStop(1, '#141216');
+    s.fillStyle = sg; RR(s, -30 - st.j * 6, -26, 60 + st.j * 12, 52, 10); s.fill();
+    s.strokeStyle = 'rgba(0,0,0,.55)'; s.lineWidth = 2; s.stroke(); s.restore();
+  });
+  // rocas y plantas en silueta
+  s.fillStyle = '#040405';
+  [[120, 560, 160, 70], [880, 570, 200, 60], [420, 600, 120, 40], [760, 610, 140, 36]].forEach(([x, y, w, hh]) => { s.beginPath(); s.ellipse(x, y, w, hh, 0, 0, 7); s.fill(); });
+  for (let k = 0; k < 26; k++) { const x = 380 + rnd(k + 200) * 460, hh = 20 + rnd(k + 300) * 50, sw = Math.sin(t * 1.2 + k) * 4; s.strokeStyle = `rgba(${40 + 90 * power * rnd(k) | 0},${30 + 50 * rnd(k + 1) | 0},30,0.9)`; s.lineWidth = 3; s.beginPath(); s.moveTo(x, base + 14); s.quadraticCurveTo(x + sw, base - hh / 2, x + sw * 2, base + 14 - hh); s.stroke(); }
+  // niebla
+  for (let k = 0; k < 5; k++) { const fx = (((k * 260 + t * 18 * (k % 2 ? 1 : -1)) % 1400) + 1400) % 1400 - 200; const fg = s.createRadialGradient(fx, base - 10, 10, fx, base - 10, 260); fg.addColorStop(0, 'rgba(150,140,170,0.10)'); fg.addColorStop(1, 'rgba(150,140,170,0)'); s.fillStyle = fg; s.fillRect(fx - 260, base - 200, 520, 360); }
+  // partículas
+  s.save(); s.globalCompositeOperation = 'lighter';
+  PART.forEach((pa) => { const y = ((pa.y - t * pa.sp) % SH + SH) % SH; const x = pa.x + Math.sin(t * 0.8 + pa.ph) * 12; const d = Math.hypot(x - cx, y - (base - 100)); const warm = clamp(1 - d / 420) * power; s.fillStyle = `rgba(255,${160 - 120 * warm | 0},${140 - 100 * warm | 0},${0.25 + 0.6 * warm})`; s.beginPath(); s.arc(x, y, pa.r * (1 + warm), 0, 7); s.fill(); });
+  s.restore();
+  s.restore();
+}
+// cortes rápidos de la app, uno por compás
+function screenApp(t) {
+  const lt = t - T2; const idx = Math.floor(lt / BAR);
+  if (idx === 0) screenGrid(t); else if (idx === 1) screenVoice(t, T2 + BAR); else screenMix(t, T2 + 2 * BAR);
+  const since = lt % BAR; if (since < 0.1) { s.fillStyle = `rgba(255,255,255,${0.35 * (1 - since / 0.1)})`; s.fillRect(0, 0, SW, SH); }
+}
 function screenEnd(t, t0) {
   const lt = t - t0;
-  const gr = s.createLinearGradient(0, 0, SW, SH); gr.addColorStop(0, '#2a0409'); gr.addColorStop(1, '#0b0203'); s.fillStyle = gr; s.fillRect(0, 0, SW, SH);
-  const sc = 0.85 + 0.15 * ease(lt / 0.5) + kick(t) * 0.03;
-  s.save(); s.translate(SW / 2, 170); s.scale(sc, sc);
-  RR(s, -70, -70, 140, 140, 34); s.fillStyle = '#000'; s.fill(); s.lineWidth = 6; s.strokeStyle = '#ff2d4b'; s.stroke(); T(s, 'DG', 0, 4, 70, '#ff2d4b', 900, 'center'); s.restore();
-  s.globalAlpha = ease((lt - 0.2) / 0.4);
-  T(s, '¿Quieres probarla', SW / 2, 330, 64, '#fff', 900, 'center');
-  T(s, 'gratis?', SW / 2, 410, 72, '#ff2d4b', 900, 'center');
-  s.globalAlpha = ease((lt - 0.6) / 0.4);
-  T(s, 'DG Studio · by differentgyal', SW / 2, 520, 28, '#e0aa55', 800, 'center');
-  s.globalAlpha = 1;
+  portal(t, 0.9 + kick(t) * 0.25, ease(lt / 0.6));
+  const gr = s.createLinearGradient(0, 380, 0, SH); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.45, 'rgba(0,0,0,.78)'); gr.addColorStop(1, 'rgba(0,0,0,.92)'); s.fillStyle = gr; s.fillRect(0, 380, SW, SH - 380);
+  const a1 = ease((lt - 0.4) / 0.6), a2 = ease((lt - 1.0) / 0.6), a3 = ease((lt - 1.6) / 0.6);
+  s.save();
+  s.letterSpacing = '2px'; s.globalAlpha = a1; T(s, '¿Quieres probarla gratis?', SW / 2, 520 + (1 - a1) * 14, 50, '#fff', 800, 'center');
+  s.letterSpacing = '8px'; s.globalAlpha = a2; T(s, 'HÁBLAME AL DM', SW / 2, 585 + (1 - a2) * 14, 32, '#ff3b57', 800, 'center');
+  s.letterSpacing = '6px'; s.globalAlpha = a3 * 0.85; T(s, 'DG STUDIO', SW / 2, 40, 20, '#d9c3c7', 700, 'center');
+  s.restore();
 }
 function drawScreen(t) {
-  if (t < T2) screenGrid(t);
-  else if (t < T2 + 2.4) screenVoice(t, T2);
-  else if (t < T3) screenMix(t, T2 + 2.4);
+  if (t < T2) { const power = t < DROP ? 0.15 + 0.35 * ease(t / DROP) : 0.75 + kick(t) * 0.35; portal(t, power, ease((t - DROP - 1.2) / 0.8) * clamp((T2 - t) / 0.4)); }
+  else if (t < T3) screenApp(t);
   else screenEnd(t, T3);
-  // líneas de escaneo de pantalla grabada con el teléfono
-  s.fillStyle = 'rgba(255,255,255,0.025)'; for (let y = 0; y < SH; y += 4) s.fillRect(0, y, SW, 1);
   gl.clearRect(0, 0, glow.width, glow.height); gl.filter = 'blur(6px)'; gl.drawImage(scr, 0, 0, glow.width, glow.height); gl.filter = 'none';
 }
 
@@ -119,8 +164,8 @@ function caption(str, alpha, y = 470) {
 // ---------- cuadro completo ----------
 export function frame(t) {
   // cámara en mano: deriva lenta + pequeño temblor
-  const sx = Math.sin(t * 0.7) * 10 + Math.sin(t * 2.3) * 3, sy = Math.cos(t * 0.5) * 8 + Math.sin(t * 3.1) * 2;
-  const rot = -0.075 + Math.sin(t * 0.4) * 0.008; const zoom = 1.04 + t * 0.004 + kick(t) * 0.006;
+  const sx = Math.sin(t * 0.35) * 6, sy = Math.cos(t * 0.27) * 5 - t * 2;
+  const rot = -0.02 + Math.sin(t * 0.25) * 0.004; const zoom = 1.04 + t * 0.004 + kick(t) * 0.006;
   g.setTransform(1, 0, 0, 1, 0, 0);
   g.fillStyle = '#030102'; g.fillRect(0, 0, W, H);
   g.save(); g.translate(W / 2 + sx, H / 2 + sy); g.rotate(rot); g.scale(zoom, zoom); g.translate(-W / 2, -H / 2);
@@ -152,10 +197,6 @@ export function frame(t) {
   g.fillStyle = v; g.fillRect(0, 0, W, H);
   const gx = (Math.floor(t * FPS) * 137) % 540, gy = (Math.floor(t * FPS) * 251) % 960;
   g.globalAlpha = 0.9; g.drawImage(grain, -gx, -gy, 1080, 1920); g.drawImage(grain, 1080 - gx, -gy, 1080, 1920); g.drawImage(grain, -gx, 1920 - gy, 1080, 1920); g.drawImage(grain, 1080 - gx, 1920 - gy, 1080, 1920); g.globalAlpha = 1;
-  // textos
-  caption('Yo produciendo techno\na las 3:69 AM 🐆', ease((t - 0.4) / 0.4) * clamp((T2 - t) / 0.25));
-  caption('la app me arma el beat,\ncanta mi letra y me lo mezcla 🔥', ease((t - T2) / 0.3) * clamp((T3 - t) / 0.25));
-  caption('¿Quieres probarla gratis?\nHáblame al DM 📩', ease((t - T3 - 0.3) / 0.4));
   // destello suave en el drop
   if (t >= DROP && t < DROP + 0.15) { g.fillStyle = `rgba(255,60,90,${0.35 * (1 - (t - DROP) / 0.15)})`; g.fillRect(0, 0, W, H); }
   // fundidos de entrada y salida
