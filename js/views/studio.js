@@ -381,7 +381,7 @@ async function auditionTrack(t, v) {
 }
 function auditionNote(t, d, len) {
   const c = audio(); const pr = SYNTHS[t.preset] || SYNTHS.lead;
-  if (!audCtxSynth) { const g = c.createGain(); g.gain.value = 0.9; g.connect(c.destination); audCtxSynth = new Synth(c, { drums: g, music: g, bass: g, verb: c.createGain() }); }
+  if (!audCtxSynth || audCtxSynth.ctx !== c) { const g = c.createGain(); g.gain.value = 0.9; g.connect(c.destination); audCtxSynth = new Synth(c, { drums: g, music: g, bass: g, verb: c.createGain() }); }
   const midi = degToMidi(P, pr, d) + (t.pitch || 0); const dur = (60 / P.bpm / 4) * len; const tt = c.currentTime + 0.02;
   if (pr.fn === 'bass') audCtxSynth._bass(pr.type, tt, midi, dur, 1); else audCtxSynth._voice(pr.type, tt, midi, dur, 1);
 }

@@ -1,7 +1,7 @@
 // ===============================================================
 //  Grabadora con pausa: micrófono, lo que suena en el Estudio, o ambos
 // ===============================================================
-import { audio, setSession } from './audio.js';
+import { audio, setSession, markStale } from './audio.js';
 import { Mixer } from '../studio/mixer.js';
 
 function pickMime() {
@@ -46,6 +46,6 @@ export class SessionRecorder {
     if (Mixer.tap === this.tap) Mixer.tap = null;
     if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
     try { this.micSrc && this.micSrc.disconnect(); this.tap && this.tap.disconnect(); } catch { /* */ }
-    setSession('playback');
+    setSession('playback'); markStale();
   }
 }

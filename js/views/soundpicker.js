@@ -11,7 +11,7 @@ import { listSamples, sampleBuffer } from '../studio/samples.js';
 let previewSynth = null;
 function previewNote(preset, root = 9) {
   const c = audio(); stopPreview();
-  if (!previewSynth) { const g = c.createGain(); g.gain.value = 0.9; g.connect(c.destination); previewSynth = new Synth(c, { drums: g, music: g, bass: g, verb: c.createGain() }); }
+  if (!previewSynth || previewSynth.ctx !== c) { const g = c.createGain(); g.gain.value = 0.9; g.connect(c.destination); previewSynth = new Synth(c, { drums: g, music: g, bass: g, verb: c.createGain() }); }
   const pr = SYNTHS[preset]; const base = 12 * (pr.oct + 1) + root; const t = c.currentTime + 0.02;
   [0, 3, 7].forEach((iv, k) => { if (pr.fn === 'bass') { if (k === 0) previewSynth._bass(pr.type, t, base, 0.6, 1); } else previewSynth._voice(pr.type, t + k * 0.18, base + iv, 0.35, 1); });
 }

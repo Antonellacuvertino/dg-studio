@@ -6,11 +6,23 @@ let ctx = null;
 // iPhone: que suene aunque el interruptor de silencio esté activado
 export const setSession = (type) => { try { if (navigator.audioSession) navigator.audioSession.type = type; } catch { /* no soportado */ } };
 
+let stale = false; let resumeTimer = null;
+// Si iOS dejó el audio bloqueado/interrumpido y no se reanuda, se crea uno nuevo (dentro del toque)
 export function audio() {
-  if (!ctx || ctx.state === 'closed') { setSession('playback'); ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' }); }
-  if (ctx.state !== 'running') { ctx.resume().catch(() => {}); kick(ctx); }
+  if (ctx && ctx.state !== 'running' && ctx.state !== 'closed' && stale) {
+    const old = ctx; ctx = null; try { old.close(); } catch { /* */ }
+  }
+  if (!ctx || ctx.state === 'closed') { setSession('playback'); ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' }); stale = false; }
+  if (ctx.state !== 'running') tryResume(ctx);
   return ctx;
 }
+function tryResume(c) {
+  c.resume().catch(() => {}); kick(c);
+  clearTimeout(resumeTimer);
+  resumeTimer = setTimeout(() => { if (ctx === c && c.state !== 'running') stale = true; }, 350);
+}
+// la grabadora cambia el modo de audio del iPhone: marcar para recrear si quedó interrumpido
+export const markStale = () => { stale = true; };
 // iOS: reproducir un sonido vacío dentro del toque "desbloquea" el audio
 function kick(c) {
   try { const b = c.createBuffer(1, 1, c.sampleRate); const s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch { /* */ }
@@ -19,10 +31,10 @@ export const audioState = () => (ctx ? ctx.state : 'sin iniciar');
 // Desbloquear el audio con los toques (iOS solo lo permite al soltar el dedo o en un clic)
 export function unlockOnGesture() {
   const evs = ['touchend', 'click', 'keydown'];
-  const go = () => { setSession('playback'); const c = audio(); kick(c); if (c.state === 'running') evs.forEach((e) => window.removeEventListener(e, go, true)); };
+  const go = () => { const c = audio(); kick(c); };
   evs.forEach((e) => window.addEventListener(e, go, true));
   // si iOS interrumpe el audio (llamada, otra app, pantalla bloqueada), reanudar al volver
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && ctx && ctx.state !== 'running') { ctx.resume().catch(() => {}); evs.forEach((e) => window.addEventListener(e, go, true)); } });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && ctx && ctx.state !== 'running') tryResume(ctx); });
 }
 // Prueba de sonido: un "bip" corto
 export function testBeep() {
@@ -67,7 +79,7 @@ export async function startRecorder({ clean = false } = {}) {
   const stop = () => {
     if (stopped) return stopped;
     stopped = new Promise((r) => {
-      rec.onstop = () => { stream.getTracks().forEach((t) => t.stop()); setSession('playback'); r(new Blob(chunks, { type: rec.mimeType || mime || 'audio/webm' })); };
+      rec.onstop = () => { stream.getTracks().forEach((t) => t.stop()); setSession('playback'); markStale(); r(new Blob(chunks, { type: rec.mimeType || mime || 'audio/webm' })); };
       try { rec.stop(); } catch { stream.getTracks().forEach((t) => t.stop()); setSession('playback'); r(new Blob(chunks)); }
     });
     return stopped;

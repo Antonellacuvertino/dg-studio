@@ -204,7 +204,7 @@ function vary(t) {
 
 async function toggle(P) {
   if (transport.playing) { transport.stop(); return; }
-  try { audio(); stopPreview(); await transport.play(loopView(P), { mode: 'scene', scene: 0 }); if (audioState() !== 'running') toast('El iPhone bloqueó el audio: toca ▶ de nuevo o "🔊?"', 4000); } catch (e) { toast('No pude reproducir: ' + e.message); }
+  try { audio(); stopPreview(); await transport.play(loopView(P), { mode: 'scene', scene: 0 }); if (audioState() !== 'running') { transport.stop(); toast('El iPhone tenía el audio bloqueado: toca ▶ otra vez (ya lo reinicié)', 4500); } } catch (e) { toast('No pude reproducir: ' + e.message); }
 }
 function setBpm(P, v, save) { P.bpm = Math.max(60, Math.min(200, Math.round(v))); transport.setBpm(P.bpm); save(); const el = document.querySelector('#v-studio .bpm .v'); if (el) el.firstChild.textContent = String(P.bpm); }
 
@@ -216,7 +216,7 @@ let aSynth = null;
 async function auditionSynth(t, P) {
   const { Synth } = await import('../engine/synth.js');
   const c = audio(); const pr = SYNTHS[t.preset] || SYNTHS.lead;
-  if (!aSynth) { const g = c.createGain(); g.gain.value = 0.9; g.connect(c.destination); aSynth = new Synth(c, { drums: g, music: g, bass: g, verb: c.createGain() }); }
+  if (!aSynth || aSynth.ctx !== c) { const g = c.createGain(); g.gain.value = 0.9; g.connect(c.destination); aSynth = new Synth(c, { drums: g, music: g, bass: g, verb: c.createGain() }); }
   const midi = degToMidi(P, pr, t.rowNote || 0) + (t.pitch || 0); const tt = c.currentTime + 0.02;
   if (pr.fn === 'bass') aSynth._bass(pr.type, tt, midi, 0.25, 1); else aSynth._voice(pr.type, tt, midi, 0.25, 1);
 }
