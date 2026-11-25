@@ -110,3 +110,18 @@ export class WavePlayer {
     if (!this.src) this.time.textContent = fmt(this.buf.duration);
   }
 }
+
+// Ayuda "¿No suena?": prueba de sonido + consejos para iPhone
+export async function soundHelp() {
+  const { testBeep, audioState } = await import('../core/audio.js');
+  const { sheet, toast } = await import('../core/ui.js');
+  for (;;) {
+    const id = await sheet('🔊 ¿No suena?', {
+      text: `Estado del audio: ${({ running: '✅ activo', suspended: '⏸️ bloqueado (toca "Probar sonido")', interrupted: '⚠️ interrumpido por iOS', closed: '❌ cerrado', 'sin iniciar': '⏸️ sin iniciar' })[audioState()] || audioState()}\n\nRevisa en tu iPhone:\n• El interruptor de silencio (lado izquierdo): que no muestre la franja naranja.\n• El volumen: súbelo mientras suena algo (no el de timbre).\n• Si tienes audífonos Bluetooth conectados, el sonido sale por ahí.\n• Si recibiste una llamada o cambiaste de app, vuelve y toca ▶ otra vez.\n• Si nada funciona: cierra la app por completo y ábrela de nuevo.`,
+      options: [{ id: 'beep', label: '🔔 Probar sonido', primary: true, sub: 'Debes escuchar un "bip"' }] });
+    if (id !== 'beep') return;
+    const st = testBeep();
+    toast(st === 'running' ? '¿Escuchaste el bip? Si no, revisa el silencio y el volumen' : 'El iPhone aún bloquea el audio: toca "Probar sonido" otra vez', 3500);
+    await new Promise((r) => setTimeout(r, 600));
+  }
+}

@@ -283,10 +283,16 @@ export class Synth {
 // ---------------------------------------------------------------
 //  Renderizar un sonido a AudioBuffer (para bancos y caché)
 // ---------------------------------------------------------------
+let running = 0; const waiting = [];
+async function slot() { if (running < 3) { running++; return; } await new Promise((r) => waiting.push(r)); running++; }
+function release() { running--; const n = waiting.shift(); if (n) n(); }
 export async function renderOne(len, fn) {
-  const oc = new OfflineAudioContext(1, Math.ceil(len * SR), SR);
-  fn(new Synth(oc));
-  return oc.startRendering();
+  await slot();
+  try {
+    const oc = new OfflineAudioContext(1, Math.ceil(len * SR), SR);
+    fn(new Synth(oc));
+    return await oc.startRendering();
+  } finally { release(); }
 }
 
 // Golpes de batería disponibles (id -> [nombre, duración, función])

@@ -12,7 +12,7 @@ import { drumBank, Synth } from '../engine/synth.js';
 import { SYNTHS, DRUM_LIST, SCENE_FX, CAMELOT, TECHNO, newTrack, newScene, makeProject, emptyProject, genAcid, genBass, genArp, genDrum, degToMidi, projectSeconds, keyLabel, touch } from '../studio/model.js';
 import { transport, renderProject } from '../studio/sequencer.js';
 import { addSample, listSamples, sampleBuffer } from '../studio/samples.js';
-import { recordOverlay } from './shared.js';
+import { recordOverlay, soundHelp } from './shared.js';
 import { renderGrid, loopView } from './beatgrid.js';
 import { soundNameSync } from '../studio/library.js';
 import { recorderCard } from './recordercard.js';
@@ -90,7 +90,7 @@ function transportBar() {
   const lcd = h('div.lcd#tLcd', {}, '1.1', h('small', {}, (P.scenes[ui.scene] || {}).name || ''));
   const mode = h('button.btn.sm#tMode', { title: 'Repetir la escena o tocar el tema completo', onclick: () => { ui.mode = ui.mode === 'scene' ? 'song' : 'scene'; $('tMode').textContent = ui.mode === 'scene' ? '🔁 Escena' : '▶️ Tema'; if (transport.playing) startPlay(); } }, ui.mode === 'scene' ? '🔁 Escena' : '▶️ Tema');
   const vu = h('div.vu', {}, h('div#tVu'));
-  return h('div.transport', {}, h('div.row', {}, playBtn, lcd, bpm, h('div.grow', {}, mode), vu));
+  return h('div.transport', {}, h('div.row', {}, playBtn, lcd, bpm, h('div.grow', {}, mode), h('button.btn.sm.always', { title: '¿No suena?', onclick: () => soundHelp() }, '🔊?'), vu));
 }
 function togglePlay() { if (transport.playing) transport.stop(); else startPlay(); }
 async function startPlay() {

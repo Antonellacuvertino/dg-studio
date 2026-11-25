@@ -7,14 +7,30 @@ let ctx = null;
 export const setSession = (type) => { try { if (navigator.audioSession) navigator.audioSession.type = type; } catch { /* no soportado */ } };
 
 export function audio() {
-  if (!ctx) { setSession('playback'); ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' }); }
-  if (ctx.state !== 'running') ctx.resume().catch(() => {});
+  if (!ctx || ctx.state === 'closed') { setSession('playback'); ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' }); }
+  if (ctx.state !== 'running') { ctx.resume().catch(() => {}); kick(ctx); }
   return ctx;
 }
-// Desbloquear el audio con el primer toque (requisito de iOS)
+// iOS: reproducir un sonido vacío dentro del toque "desbloquea" el audio
+function kick(c) {
+  try { const b = c.createBuffer(1, 1, c.sampleRate); const s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch { /* */ }
+}
+export const audioState = () => (ctx ? ctx.state : 'sin iniciar');
+// Desbloquear el audio con los toques (iOS solo lo permite al soltar el dedo o en un clic)
 export function unlockOnGesture() {
-  const go = () => { audio(); window.removeEventListener('pointerdown', go, true); };
-  window.addEventListener('pointerdown', go, true);
+  const evs = ['touchend', 'click', 'keydown'];
+  const go = () => { setSession('playback'); const c = audio(); kick(c); if (c.state === 'running') evs.forEach((e) => window.removeEventListener(e, go, true)); };
+  evs.forEach((e) => window.addEventListener(e, go, true));
+  // si iOS interrumpe el audio (llamada, otra app, pantalla bloqueada), reanudar al volver
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && ctx && ctx.state !== 'running') { ctx.resume().catch(() => {}); evs.forEach((e) => window.addEventListener(e, go, true)); } });
+}
+// Prueba de sonido: un "bip" corto
+export function testBeep() {
+  const c = audio(); kick(c);
+  const o = c.createOscillator(); const g = c.createGain(); o.frequency.value = 660;
+  const t = c.currentTime + 0.05; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.4, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.4);
+  return c.state;
 }
 
 export async function decode(blobOrBuffer) {

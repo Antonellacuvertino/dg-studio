@@ -14,6 +14,8 @@ import { soundNameSync, soundBuffer } from '../studio/library.js';
 import { transport, renderProject } from '../studio/sequencer.js';
 import { sampleBuffer } from '../studio/samples.js';
 import { pickSound } from './soundpicker.js';
+import { soundHelp } from './shared.js';
+import { audioState } from '../core/audio.js';
 import { recorderCard } from './recordercard.js';
 import { sendToMulti } from '../multi/send.js';
 
@@ -53,7 +55,7 @@ export function renderGrid(root, P, { save, rerender, openMenu, goAdvanced }) {
     h('div.row', { style: { marginTop: '12px' } },
       h('div.grow', {}, h('h2.vt', { style: { margin: 0 } }, P.name), h('div.muted.small', {}, `${G ? G.emoji + ' ' + G.name + ' · ' : ''}${NOTE_ES[P.root]} ${P.mode === 'minor' ? 'menor' : 'mayor'} · ${CAMELOT[P.mode][P.root]}`)),
       h('button.btn.sm', { onclick: action(openMenu) }, '⋯')),
-    h('div.transport', {}, h('div.row', {}, play, bpm, h('div.grow'), h('button.btn.sm', { onclick: goAdvanced }, '⚙️ Avanzado'))),
+    h('div.transport', {}, h('div.row', {}, play, bpm, h('div.grow'), h('button.btn.sm.always', { title: '¿No suena?', onclick: () => soundHelp() }, '🔊?'), h('button.btn.sm', { onclick: goAdvanced }, '⚙️ Avanzado'))),
     h('div.muted.small', { style: { margin: '10px 2px 4px' } }, '1️⃣ Elige un estilo'),
     cards,
     rec ? h('div.tipcard', { style: { borderColor: rec.color } }, h('b', {}, `💡 ${rec.name}`), ' ', rec.tip) : null,
@@ -202,7 +204,7 @@ function vary(t) {
 
 async function toggle(P) {
   if (transport.playing) { transport.stop(); return; }
-  try { audio(); stopPreview(); await transport.play(loopView(P), { mode: 'scene', scene: 0 }); } catch (e) { toast('No pude reproducir: ' + e.message); }
+  try { audio(); stopPreview(); await transport.play(loopView(P), { mode: 'scene', scene: 0 }); if (audioState() !== 'running') toast('El iPhone bloqueó el audio: toca ▶ de nuevo o "🔊?"', 4000); } catch (e) { toast('No pude reproducir: ' + e.message); }
 }
 function setBpm(P, v, save) { P.bpm = Math.max(60, Math.min(200, Math.round(v))); transport.setBpm(P.bpm); save(); const el = document.querySelector('#v-studio .bpm .v'); if (el) el.firstChild.textContent = String(P.bpm); }
 

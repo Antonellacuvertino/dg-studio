@@ -134,7 +134,7 @@ export class Transport {
     const ctx = audio();
     const [bank, samples, lib] = await Promise.all([drumBank(), loadProjectSamples(project), loadProjectLib(project)]);
     const P = new Player(ctx, project, bank, samples); P.lib = lib;
-    await P.prewarm();
+    P.prewarm().catch(() => {}); // se calcula en segundo plano; mientras tanto se sintetiza en vivo
     this.player = P;
     this.mode = mode; this.sceneIdx = Math.min(scene, project.scenes.length - 1); this.s = 0;
     this.next = ctx.currentTime + 0.1; this.queue = []; this.playing = true;
