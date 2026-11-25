@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DG Studio · Promo madrugada</title>
+<style>
+  body { margin: 0; background: #0a0405; color: #fff; font-family: system-ui, "Segoe UI", sans-serif; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; }
+  canvas { width: 270px; height: 480px; border-radius: 16px; box-shadow: 0 10px 40px #000; }
+  button { padding: 12px 18px; border-radius: 12px; border: 0; background: #e3102f; color: #fff; font-weight: 800; font-size: 16px; }
+  #st { color: #c49aa1; font-size: 14px; }
+</style>
+</head>
+<body>
+  <canvas id="cv" width="1080" height="1920"></canvas>
+  <div id="st">Listo</div>
+  <button id="go">🎬 Generar video MP4</button>
+  <button id="prev">▶ Vista previa</button>
+  <script type="module" src="promo2.js"></script>
+</body>
+</html>
