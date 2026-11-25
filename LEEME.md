@@ -28,7 +28,7 @@ La voz de la app tiene tu timbre pero suena sintética. Para que suene como tú 
 Usa Seed-VC (GPL-3.0): tus canciones son tuyas y puedes monetizarlas; si algún día vendes la app, Seed-VC debe seguir como herramienta aparte.
 
 ## Derechos
-Todos los sonidos se sintetizan desde cero en tu dispositivo (sin samples de terceros). Al recrear una canción solo se aprende su ritmo. El certificado de licencia prueba fecha y autoría; para protección legal completa registra tus obras en la oficina de derechos de autor de tu país.
+Los sonidos son sintetizados por la app o muestras de dominio público (CC0), así que puedes monetizar tus temas. Al recrear una canción solo se aprende su ritmo. El certificado de licencia prueba fecha y autoría; para protección legal completa registra tus obras en la oficina de derechos de autor de tu país.
 
 ## Datos
 Proyectos, sonidos y tu voz se guardan **solo en tu dispositivo** (no se suben a internet). Si borras los datos de Safari se pierden: exporta tus temas.
