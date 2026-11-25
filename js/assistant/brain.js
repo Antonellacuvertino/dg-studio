@@ -14,6 +14,9 @@ const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 // ---------- estilo pedido en el texto ----------
 const STYLE_WORDS = [
+  ['perreorave', /perreo ?rave|tech ?perreo|perreo techno|techengue|perreo a 15|noro\$?s?t|peterblue|part time killer|aleroj/], ['makineo', /makineo|maquineo|makina|galactxtx|crrdr|cera khin/],
+  ['hardhouse', /hard ?house|funky house|hard ?bounce|funk tribu|iosio|noise mafia|esca/], ['funkbr', /funk (brasil|brasileno|carioca|mandelao)|baile funk|mandelao|brazilian funk|tamborzao/],
+  ['ukbass', /uk ?garage|speed ?garage|bassline|uk ?bass|ned bennett|yasmin regisford/],
   ['guaracha', /guaracha|aleteo|zapateo/], ['hardtechno', /hard ?techno|hard ?tecno|techno duro|tecno duro|schranz/],
   ['technolatino', /techno latino|tecno latino|edit|neoperreo|rkt/], ['acidtechno', /acid|acido/], ['melodictechno', /melodic|melodico/],
   ['industrial', /industrial/], ['hardgroove', /hardgroove|tribal/], ['rave', /rave/], ['techno', /techno|tecno/],
@@ -58,6 +61,11 @@ const KIT = {
   rave: 'ritmo quebrado (breakbeat), caja rave, bajo reese y un hoover en el drop',
   house: 'bombo 4x4, palmas, hats abiertos en el contratiempo y un bajo saltarín',
   reggaeton: 'bombo 4x4 con la caja del dembow (3-3-2), shaker y un sub-bajo',
+  perreorave: 'bombo duro 4x4 a ~155 con el dembow (3-3-2) en el aro, las congas y el sub-bajo; hats rápidos y stabs cortos',
+  makineo: 'bombo duro a ~162, palmas en 2 y 4, bajo rodante en todos los huecos entre bombos, hoover y supersaw en el drop',
+  hardhouse: 'bombo 4x4, palmas, hat abierto en el contratiempo y el bajo saltando de octava (el "oi-oi" del hard house), stabs de órgano',
+  funkbr: 'tamborzão (bombo "x..x..x...x..x.."), palmas, congas y sub-bajo; melodía de campana o flauta y voces cortadas',
+  ukbass: 'bombo con saltos, palmas en 2 y 4, shaker con swing y un bajo reese que se mueve; estilo speed garage / bassline',
 };
 function targetBpm(bpm, G) {
   const mid = (G.bpm[0] + G.bpm[1]) / 2;

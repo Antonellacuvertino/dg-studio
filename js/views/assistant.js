@@ -107,6 +107,9 @@ const ACTIONS = {
 // ---------------------------------------------------------------
 const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const GENRE_WORDS = [
+  ['perreorave', /perreo ?rave|tech ?perreo|perreo techno|techengue|perreo a 15|noro\$?s?t|peterblue|part time killer|aleroj/], ['makineo', /makineo|maquineo|makina|galactxtx|crrdr|cera khin/],
+  ['hardhouse', /hard ?house|funky house|hard ?bounce|funk tribu|iosio|noise mafia|esca/], ['funkbr', /funk (brasil|brasileno|carioca|mandelao)|baile funk|mandelao|brazilian funk|tamborzao/],
+  ['ukbass', /uk ?garage|speed ?garage|bassline|uk ?bass|ned bennett|yasmin regisford/],
   ['guaracha', /guaracha|aleteo|zapateo/],
   ['hardtechno', /hard ?techno|hard ?tecno|techno duro|tecno duro|schranz|hardtechno/],
   ['technolatino', /latino|edit|perreo|neoperreo|rkt|guaracha|techno con (reggaeton|dembow)/],

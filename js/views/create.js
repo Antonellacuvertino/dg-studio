@@ -32,7 +32,7 @@ const S = {
 };
 let player = null;
 
-const ORDER = () => ['auto', 'hardtechno', 'technolatino', 'techno', 'acidtechno', 'rave', 'industrial', 'hardgroove', 'melodictechno', ...GENRE_KEYS.filter((k) => !TECHNO.has(k)), 'house', 'edm'];
+const ORDER = () => ['auto', 'hardtechno', 'technolatino', 'perreorave', 'makineo', 'hardhouse', 'funkbr', 'ukbass', 'guaracha', 'techno', 'acidtechno', 'rave', 'industrial', 'hardgroove', 'melodictechno', ...GENRE_KEYS.filter((k) => !TECHNO.has(k)), 'house', 'edm'];
 
 export async function initCreate(el) {
   root = el;

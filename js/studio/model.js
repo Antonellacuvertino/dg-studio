@@ -8,7 +8,7 @@ import { GENRES, SCALES, degSemi, rng, pick, pat } from '../engine/engine.js';
 import { DRUMS } from '../engine/synth.js';
 import { uid } from '../core/ui.js';
 
-export const TECHNO = new Set(['guaracha', 'techno', 'hardtechno', 'acidtechno', 'melodictechno', 'industrial', 'hardgroove', 'technolatino', 'rave', 'house', 'edm']);
+export const TECHNO = new Set(['perreorave', 'makineo', 'hardhouse', 'funkbr', 'ukbass', 'guaracha', 'techno', 'hardtechno', 'acidtechno', 'melodictechno', 'industrial', 'hardgroove', 'technolatino', 'rave', 'house', 'edm']);
 
 export const SYNTHS = {
   acid: { name: 'Acid 303', fn: 'voice', type: 'acid', oct: 3 },

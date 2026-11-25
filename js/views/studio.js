@@ -460,7 +460,7 @@ async function menu() {
 export async function newFromStyle(preset = null, opts = {}) {
   let g = preset;
   if (!g) {
-    const order = ['hardtechno', 'technolatino', 'techno', 'acidtechno', 'industrial', 'hardgroove', 'rave', 'melodictechno', ...GENRE_KEYS.filter((k) => !TECHNO.has(k)), 'house', 'edm'];
+    const order = ['hardtechno', 'technolatino', 'perreorave', 'makineo', 'hardhouse', 'funkbr', 'ukbass', 'guaracha', 'techno', 'acidtechno', 'industrial', 'hardgroove', 'rave', 'melodictechno', ...GENRE_KEYS.filter((k) => !TECHNO.has(k)), 'house', 'edm'];
     g = await sheet('Nuevo proyecto', { grid: true, options: [...new Set(order)].filter((k) => GENRES[k]).map((k) => ({ id: k, label: `${GENRES[k].emoji} ${GENRES[k].name}`, sub: `${GENRES[k].bpm[0]}–${GENRES[k].bpm[1]} BPM` })) });
     if (!g) return;
   }

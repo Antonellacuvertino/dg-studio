@@ -198,6 +198,42 @@ export const GENRES = {
     bass: { type: 'synth', pat: '..R...R...R..RR.' }, chords: { type: 'stab', pat: 'x..x..x.....x...', chorusType: 'lead', chorusPat: 'x.x.x...x.x.x...' }, lead: 'lead',
     progs: { minor: [[0, 5, 6, 4], [0, 0, 5, 6], [0, 6, 5, 6]], major: [[0, 4, 5, 3]] },
   },
+  // --- estilos de la playlist de differentgyal (54 temas analizados, casi todos 140-170 BPM) ---
+  perreorave: { // Noro$t, PETERBLUE, Part Time Killer: el dembow (3-3-2) en el bajo sobre bombo 4x4 a ~155
+    name: 'Perreo Rave', emoji: '🍑', bpm: [150, 158], mode: 'minor', swing: 0, spb: 9, chordBars: 2, duck: true, hardKick: true, riser: true,
+    kick: ['x...x...x...x...'], snare: ['...x..x....x..x.', '...x..x....x..xx'], snareType: 'rim',
+    hat: ['..x...x...x...x.', 'x.x.x.x.x.x.x.x.'], perc: [{ type: 'conga', pat: 'x..x..x.x..x..x.', core: true }, { type: 'shaker', pat: 'gxgxgxgxgxgxgxgx' }],
+    bass: { type: 'sub', pat: 'R..R..R.R..R..R.' }, chords: { type: 'stab', pat: 'x..x..x...x..x..' }, lead: 'pluck',
+    progs: { minor: [[0, 5, 6, 0], [0, 0, 5, 6], [0, 3, 4, 0]], major: [[0, 4, 5, 3]] },
+  },
+  makineo: { // Galactxtx, CRRDR, Cera Khin: bajo rodante en cada 16avo libre, ~162
+    name: 'Makineo', emoji: '⚙️', bpm: [158, 166], mode: 'minor', swing: 0, spb: 9, chordBars: 2, duck: true, hardKick: true, openHats: true, riser: true,
+    kick: ['x...x...x...x...'], snare: ['....x.......x...', '....x.......x.x.'], snareType: 'clap',
+    hat: ['..x...x...x...x.'], perc: [{ type: 'shaker', pat: 'xgxgxgxgxgxgxgxg', core: true }],
+    bass: { type: 'rumble', pat: '.RRR.RRR.RRR.RRR' }, chords: { type: 'hoover', pat: 'x-------x-------', chorusType: 'supersaw', chorusPat: 'x---x---x---x---' }, lead: 'supersaw',
+    progs: { minor: [[0, 5, 6, 4], [0, 6, 5, 6], [0, 0, 5, 6]], major: [[0, 4, 5, 3]] },
+  },
+  hardhouse: { // Funk Tribu, IOSIO, Noise Mafia: bajo saltando de octava en el contratiempo, ~152
+    name: 'Hard House', emoji: '🪩', bpm: [148, 155], mode: 'minor', swing: 0, spb: 8, chordBars: 2, duck: true, hardKick: true, openHats: true,
+    kick: ['x...x...x...x...'], snare: ['....x.......x...'], snareType: 'clap',
+    hat: ['..x...x...x...x.'], perc: [{ type: 'shaker', pat: 'gxgggxgggxgggxgg', core: true }],
+    bass: { type: 'synth', pat: '..RO..RO..RO..RO' }, chords: { type: 'stab', pat: '..x...x...x..x..', chorusType: 'hoover', chorusPat: 'x-------x-------' }, lead: 'organ',
+    progs: { minor: [[0, 0, 5, 6], [0, 3, 0, 4], [0, 0, 3, 3]], major: [[0, 0, 4, 4]] },
+  },
+  funkbr: { // SEQUENCIA DA XOTA, LUPA NA CARA, MUEVE ESE CULO: tamborzão + sub y melodía de campana
+    name: 'Funk Brasil', emoji: '🇧🇷', bpm: [135, 150], mode: 'minor', swing: 0, spb: 9, chordBars: 2, duck: true,
+    kick: ['x..x..x...x..x..', 'x..x..x.x..x..x.'], snare: ['....x..x....x...', '....x.......x..x'], snareType: 'clap',
+    hat: ['................', '..x...x...x...x.'], perc: [{ type: 'conga', pat: 'x.x..x.x..x.x..x', core: true }],
+    bass: { type: 'sub', pat: 'R..R..R...R..R..' }, chords: { type: 'pluck', pat: 'x..x..x...x..x..' }, lead: 'bell',
+    progs: { minor: [[0, 0, 5, 5], [0, 6, 5, 6], [0, 0, 3, 4]], major: [[0, 4, 5, 4]] },
+  },
+  ukbass: { // Ned Bennett, Yasmin Regisford: bombo con saltos, palmas en 2 y 4 y bajo reese, ~145
+    name: 'UK Bass', emoji: '🇬🇧', bpm: [138, 150], mode: 'minor', swing: 0.1, spb: 8, chordBars: 2, duck: true, openHats: true,
+    kick: ['x...x...x...x...', 'x.....x.x...x...'], snare: ['....x.......x...'], snareType: 'clap',
+    hat: ['..x...x...x...x.'], perc: [{ type: 'shaker', pat: 'xgxxxgxxxgxxxgxx', core: true }],
+    bass: { type: 'reese', pat: 'R.R...R...R.R...' }, chords: { type: 'stab', pat: 'x..x......x.....' }, lead: 'organ',
+    progs: { minor: [[0, 0, 5, 6], [0, 3, 0, 6]], major: [[0, 4, 0, 4]] },
+  },
   balada: {
     name: 'Balada', emoji: '🌹', bpm: [64, 80], mode: 'major', swing: 0, spb: 8, chordBars: 1,
     kick: ['x.......x.......'], snare: ['....x.......x...'], snareType: 'snare', hat: ['xgxgxgxgxgxgxgxg'],

@@ -96,7 +96,7 @@ export function produce(p) {
   const sections = []; const timeline = [];
   // Duración objetivo (en compases): alarga la canción repitiendo el gancho y con vocal chops
   const TARGET = { auto: 0, short: 90, normal: 150, long: 210, dj: 360 };
-  const techno = ['techno', 'hardtechno', 'acidtechno', 'melodictechno', 'industrial', 'hardgroove', 'technolatino', 'rave', 'house', 'edm'].includes(genre);
+  const techno = ['perreorave', 'makineo', 'hardhouse', 'funkbr', 'ukbass', 'guaracha', 'techno', 'hardtechno', 'acidtechno', 'melodictechno', 'industrial', 'hardgroove', 'technolatino', 'rave', 'house', 'edm'].includes(genre);
   const intro = p.length === 'dj' ? 32 : techno && p.length && p.length !== 'auto' ? 16 : bpm < 90 ? 2 : 4;
   const outro = p.length === 'dj' ? 32 : techno && p.length && p.length !== 'auto' ? 16 : 4;
   const targetBars = Math.max(0, Math.round(((TARGET[p.length || 'auto'] || 0) * bpm) / 240) - outro);
